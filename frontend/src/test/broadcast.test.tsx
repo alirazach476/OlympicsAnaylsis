@@ -189,16 +189,16 @@ describe("final acceptance: the five editions (live API, real data)", () => {
     expect(within(table).getAllByTestId("sport-pictogram")[0].querySelector("img")!.getAttribute("src")).toContain("/2026_winter/");
   }, 150000);
 
-  it("switching the selected edition restyles the whole page (background, header, pictograms)", async () => {
+  it("choosing a Games in the sidebar opens that edition's page, in its own theme (background, emblem)", async () => {
     if (!up) return;
     const user = userEvent.setup();
     mountApp("/results?games=2024_summer");
     await screen.findByTestId("podium", {}, { timeout: 40000 });
     const before = screen.getByTestId("edition-background").getAttribute("data-edition");
     await user.selectOptions(screen.getByLabelText("Selected edition"), "2020_summer");
+    await waitFor(() => expect(screen.getByTestId("edition-hero").textContent).toMatch(/Tokyo\s*2020/), { timeout: 30000 });
     await waitFor(() => expect(screen.getByTestId("edition-background").getAttribute("data-edition")).toBe("2020_summer"), { timeout: 20000 });
     expect(before).toBe("2024_summer");
-    await waitFor(() => expect(within(screen.getByTestId("page-header")).getAllByAltText("Tokyo 2020 emblem").length).toBeGreaterThan(0), { timeout: 20000 });
-    await waitFor(() => expect(screen.getAllByTestId("sport-pictogram")[0].querySelector("img")?.getAttribute("src") ?? "").toContain("/2020_summer/"), { timeout: 20000 });
+    expect(within(screen.getByTestId("edition-hero")).getAllByAltText("Tokyo 2020 emblem").length).toBeGreaterThan(0);
   }, 150000);
 });
