@@ -1,0 +1,18 @@
+version: 2
+sources:
+  - name: warehouse
+    description: >
+      Bronze/Silver tables in data/olympics_warehouse.db (SQLite; dbt-sqlite adapter or the Postgres copy produced by
+      scripts/migrate_sqlite_to_postgres.py). Bronze tables are never modified.
+    tables:
+      - name: athletes
+      - name: athlete_participations
+      - name: games
+      - name: sports
+      - name: events
+      - name: historical_nocs
+      - name: ref_host_noc
+      - name: ref_noc_alias
+      - name: olympedia_podium_results
+      - name: olympedia_standings
+      - name: olympedia_matches

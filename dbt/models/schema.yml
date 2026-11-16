@@ -1,0 +1,32 @@
+version: 2
+models:
+  - name: stg_participations
+    columns:
+      - name: participation_id
+        tests: [unique, not_null]
+      - name: athlete_id
+        tests: [not_null, {relationships: {to: "source('warehouse','athletes')", field: athlete_id}}]
+      - name: games_id
+        tests: [not_null, {relationships: {to: "source('warehouse','games')", field: games_id}}]
+      - name: is_medalist
+        tests: [{accepted_values: {values: [0, 1]}}]
+  - name: stg_medal_awards
+    columns:
+      - name: medal_type
+        tests: [not_null, {accepted_values: {values: ['Gold','Silver','Bronze']}}]
+    tests:
+      - dbt_utils.unique_combination_of_columns: {combination_of_columns: [games_id, result_id, noc_code, medal_type]}
+  - name: mart_country_medals
+    columns:
+      - name: noc_code
+        tests: [not_null, {relationships: {to: "source('warehouse','historical_nocs')", field: noc_code}}]
+    tests:
+      - dbt_utils.unique_combination_of_columns: {combination_of_columns: [games_id, noc_code]}
+  - name: mart_edition_performance
+    columns:
+      - name: games_id
+        tests: [unique, not_null]
+  - name: mart_athlete_career
+    columns:
+      - name: athlete_id
+        tests: [unique, not_null]

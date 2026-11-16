@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Data caches (keep structure; ignore bulky dumps)
+data/raw/wikipedia/cache/
+data/raw/wikipedia/pages/
+data/raw/**/*.html
+data/raw/**/*.json
+!data/raw/**/.gitkeep
+data/staging/*
+!data/staging/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/cleaned/*
+!data/cleaned/.gitkeep
+data/exports/*
+!data/exports/.gitkeep
+
+# Assets downloads
+assets/**/*
+!assets/**/.gitkeep
+!assets/olympic_logos/**/.gitkeep
+
+# Reports generated
+reports/**/*.csv
+reports/**/*.json
+!reports/**/.gitkeep
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Crawl control
+data/raw/wikipedia/.crawl_paused
+*.log
+
+# Warehouse databases and bulky local data (2.7 GB warehouse + backups): hosted on Hugging Face, rebuilt by the pipeline
+data/*.db
+data/*.db-*
+data/*.db.bak*
+data/olympics_warehouse.db*
+data/pictograms/
+athlete_events.csv/
+*.csv.gz
+mlflow.db
+mlruns/
+.env.*
+!.env.example
+"Olympics Editions Logo/"
+Olympics Editions Logo/
+.vercel/
+deploy/huggingface/space/
+data/raw/historical_datasets/*.csv
+data/raw/**/*.csv
+frontend/src/*.bak

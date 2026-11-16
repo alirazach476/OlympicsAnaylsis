@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: olympics-postgres
+    environment:
+      POSTGRES_DB: olympics
+      POSTGRES_USER: olympics
+      POSTGRES_PASSWORD: change_me
+    ports:
+      - "5432:5432"
+    volumes:
+      - olympics_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U olympics -d olympics"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: olympics-api
+    env_file:
+      - .env.example
+    environment:
+      DATABASE_URL: postgresql+psycopg2://olympics:change_me@postgres:5432/olympics
+      POSTGRES_HOST: postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  olympics_pgdata:

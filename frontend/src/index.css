@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+[data-theme="dark"] {
+  --bg: 9 13 22;
+  --surface: 17 24 39;
+  --surface2: 24 33 52;
+  --line: 40 52 76;
+  --ink: 238 242 248;
+  --muted: 148 163 184;
+  --accent: 244 195 0;
+  color-scheme: dark;
+}
+[data-theme="light"] {
+  --bg: 244 246 250;
+  --surface: 255 255 255;
+  --surface2: 238 241 247;
+  --line: 214 221 233;
+  --ink: 15 23 42;
+  --muted: 88 100 122;
+  --accent: 0 133 199;
+  color-scheme: light;
+}
+/* Winter pages get an ice-blue accent, Summer pages the Olympic gold */
+[data-season="winter"] { --accent: 96 200 255; }
+[data-season="summer"] { --accent: 244 195 0; }
+[data-theme="light"][data-season="winter"] { --accent: 0 133 199; }
+[data-theme="light"][data-season="summer"] { --accent: 190 140 0; }
+
+html, body, #root { min-height: 100%; }
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+  background-image: radial-gradient(900px 420px at 8% -8%, rgb(0 133 199 / 0.10), transparent 60%), radial-gradient(800px 380px at 100% 0%, rgb(244 195 0 / 0.07), transparent 55%);
+  background-attachment: fixed;
+}
+@layer components {
+  .card { @apply rounded-xl border border-line bg-surface shadow-card; }
+  .h-display { @apply font-display font-semibold tracking-wide uppercase; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full border border-line bg-surface2 px-2.5 py-0.5 text-xs text-muted; }
+  .btn { @apply inline-flex items-center gap-2 rounded-lg border border-line bg-surface2 px-3 py-1.5 text-sm text-ink transition hover:border-accent hover:text-accent disabled:opacity-40; }
+  .btn-accent { @apply border-accent bg-accent/10 text-accent; }
+  .input { @apply rounded-lg border border-line bg-surface2 px-3 py-1.5 text-sm text-ink placeholder:text-muted focus:border-accent focus:outline-none; }
+  .th { @apply whitespace-nowrap px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-[0.12em]; color: #fff; text-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+    background-color: color-mix(in srgb, var(--ed-deep, var(--ed-primary, #1e3a5f)) 62%, #070a12); border-bottom: 2px solid var(--ed-accent, #c9a227); }
+  .td { @apply border-b border-line/40 px-3 py-2.5 text-sm; }
+  .tabnum { font-variant-numeric: tabular-nums; }
+}
+:focus-visible { outline: 2px solid rgb(var(--accent)); outline-offset: 2px; border-radius: 4px; }
+/* grid children must be allowed to shrink, otherwise one wide table makes the whole page scroll sideways on phones */
+.grid > * { min-width: 0; }
+.recharts-tooltip-wrapper { outline: none; }
+.scroll-thin::-webkit-scrollbar { height: 8px; width: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgb(var(--line)); border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* edition identity rule: the edition's own palette as a thin band (headers, section dividers, sidebar) */
+.ed-stripe { background: var(--ed-stripe, linear-gradient(90deg, #0085C7, #F4C300, #1a1a1a, #009F3D, #DF0024)); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+/* every table's heading band carries the edition identity: its background artwork under a colour veil, its emblem on the right */
+/* table heading band: a DARK edition design - the edition's background artwork, deepened with its deepest colour, light at the edges; white lettering.
+   Emblem on the left and sport pictogram on the right are drawn by <TableHead>. Same in dark and light theme (a broadcast graphic is always dark). */
+.ed-table-head { position: relative; isolation: isolate; color: rgb(255 255 255 / 0.75); border-bottom: 2px solid var(--ed-accent, #c9a227); }
+.ed-table-head::before { content: ""; position: absolute; inset: 0; z-index: -2; background-image: var(--ed-bg-img, none); background-size: cover; background-position: center 40%; opacity: 0.9; }
+.ed-table-head::after { content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--ed-deep, var(--ed-primary, #1e3a5f)) 88%, #04060b) 0%, color-mix(in srgb, var(--ed-deep, var(--ed-primary, #1e3a5f)) 70%, rgb(4 6 11 / 0.85)) 40%, color-mix(in srgb, var(--ed-deep, var(--ed-primary, #1e3a5f)) 45%, rgb(4 6 11 / 0.55)) 75%, color-mix(in srgb, var(--ed-primary, #333) 40%, rgb(4 6 11 / 0.65)) 100%),
+    repeating-linear-gradient(115deg, transparent 0 18px, rgb(255 255 255 / 0.035) 18px 36px); }
+.ed-table-head .btn { background-color: rgb(255 255 255 / 0.10); border-color: rgb(255 255 255 / 0.22); color: #fff; }
+.ed-table-head .btn:hover { border-color: var(--ed-accent); color: var(--ed-accent); }
+.ed-table-head .input { background-color: rgb(0 0 0 / 0.30); border-color: rgb(255 255 255 / 0.22); color: #fff; }
+.ed-table-head .input::placeholder { color: rgb(255 255 255 / 0.6); }
+/* the menu bar: edition artwork, a colour veil and the emblem as a watermark */
+.ed-nav { background-image: linear-gradient(180deg, color-mix(in srgb, var(--ed-primary, transparent) 40%, rgb(var(--surface) / 0.80)) 0%, rgb(var(--surface) / 0.90) 30%, rgb(var(--surface) / 0.95) 70%, color-mix(in srgb, var(--ed-secondary, transparent) 25%, rgb(var(--surface) / 0.9)) 100%), var(--ed-logo-img, none), var(--ed-bg-img, none);
+  background-size: 100% 100%, 78% auto, cover; background-position: center, center 92%, center; background-repeat: no-repeat; }
+
+/* broadcast tables: lifted frame, striped rows in the edition tint, a clear hover / focus row */
+.ed-table { box-shadow: 0 24px 60px -36px var(--ed-glow, rgba(0,0,0,.6)), 0 1px 0 rgb(255 255 255 / 0.04) inset; }
+.ed-table .ed-row:focus-visible { outline: 2px solid var(--ed-accent); outline-offset: -2px; }
+.ed-table-head b { font-size: 1.05rem; letter-spacing: .02em; text-transform: uppercase; }
+
+/* broadcast header row: deep edition colour band, lighter towards the right, white lettering (all tables) */
+.ed-table thead tr { background: linear-gradient(90deg, color-mix(in srgb, var(--ed-deep, var(--ed-primary, #1e3a5f)) 72%, #070a12), color-mix(in srgb, var(--ed-deep, var(--ed-primary, #1e3a5f)) 42%, #070a12) 70%, color-mix(in srgb, var(--ed-primary, #333) 30%, #070a12)); }
+.ed-table thead th { background-color: transparent; }
+.ed-table thead th[aria-sort="ascending"], .ed-table thead th[aria-sort="descending"] { color: var(--ed-accent); }
+/* first data column reads as the row's label */
+.ed-table tbody td:first-child { font-weight: 600; }
+.ed-table tbody tr { transition: background-color .15s ease; }
+/* a card that only holds a broadcast table: drop the outer frame (no box-in-a-box) */
+section.card:has(> div > .ed-table), section.card:has(> div > div > .ed-table) { background: transparent; border-color: transparent; box-shadow: none; padding: 0; }
+section.card:has(> div > .ed-table) > header, section.card:has(> div > div > .ed-table) > header { padding: 0 2px; }
+
+/* ===== broadcast row cards (every table with a CSV button) =====================================================================
+   rows float as rounded cards on the table body, medal rows are washed in their medal colour with a medal bar, qualifiers carry the
+   edition accent bar, hover lifts the row in the edition colour. Same look for plain tables and the virtualised DataTable. */
+.ed-table { --row: rgb(var(--surface2) / 0.62); --row-alt: rgb(var(--surface2) / 0.40); --row-hover: color-mix(in srgb, var(--ed-primary, #1e3a5f) 26%, rgb(var(--surface2)));
+  --gold: 212 175 55; --silver: 192 199 209; --bronze: 205 127 50;
+  /* the table body carries the edition's background artwork, veiled so the rows stay readable */
+  background-image:
+    linear-gradient(180deg, rgb(var(--surface) / 0.72) 0%, rgb(var(--bg) / 0.80) 55%, rgb(var(--bg) / 0.88) 100%),
+    linear-gradient(135deg, color-mix(in srgb, var(--ed-primary, transparent) 30%, transparent), transparent 55%, color-mix(in srgb, var(--ed-secondary, transparent) 22%, transparent)),
+    var(--ed-logo-img, none),
+    var(--ed-bg-img, none);
+  background-size: cover, cover, auto 46%, cover; background-position: center, center, right 3% bottom 6%, center 30%; background-repeat: no-repeat; }
+
+/* plain tables */
+.ed-table table:not([role=table]) { border-collapse: separate; border-spacing: 0 5px; padding: 0 10px 8px; margin-top: -5px; }
+.ed-table table:not([role=table]) > thead th { border-bottom: 0; box-shadow: inset 0 -2px 0 var(--ed-accent, #c9a227); }
+.ed-table table:not([role=table]) > thead th:first-child { border-radius: 10px 0 0 10px; }
+.ed-table table:not([role=table]) > thead th:last-child { border-radius: 0 10px 10px 0; }
+.ed-table table:not([role=table]) > tbody > tr > td { border-bottom: 0; background-color: var(--row); padding-top: .7rem; padding-bottom: .7rem; transition: background-color .15s ease, box-shadow .15s ease; }
+.ed-table table:not([role=table]) > tbody > tr:nth-child(even) > td { background-color: var(--row-alt); }
+.ed-table table:not([role=table]) > tbody > tr > td:first-child { border-radius: 12px 0 0 12px; }
+.ed-table table:not([role=table]) > tbody > tr > td:last-child { border-radius: 0 12px 12px 0; }
+.ed-table table:not([role=table]) > tbody > tr:hover > td { background-color: var(--row-hover); }
+.ed-table table:not([role=table]) > tbody > tr[data-medal=Gold] > td { background-color: rgb(var(--gold) / 0.16); }
+.ed-table table:not([role=table]) > tbody > tr[data-medal=Silver] > td { background-color: rgb(var(--silver) / 0.13); }
+.ed-table table:not([role=table]) > tbody > tr[data-medal=Bronze] > td { background-color: rgb(var(--bronze) / 0.15); }
+.ed-table table:not([role=table]) > tbody > tr[data-medal=Gold] > td:first-child { box-shadow: inset 5px 0 0 rgb(var(--gold)); }
+.ed-table table:not([role=table]) > tbody > tr[data-medal=Silver] > td:first-child { box-shadow: inset 5px 0 0 rgb(var(--silver)); }
+.ed-table table:not([role=table]) > tbody > tr[data-medal=Bronze] > td:first-child { box-shadow: inset 5px 0 0 rgb(var(--bronze)); }
+.ed-table table:not([role=table]) > tbody > tr[data-qualified] > td:first-child { box-shadow: inset 5px 0 0 var(--ed-accent); }
+.ed-table table:not([role=table]) > tbody > tr[data-testid=squad-row] > td { background-color: rgb(var(--surface) / 0.55); padding-top: .35rem; padding-bottom: .35rem; }
+.ed-table table:not([role=table]) > tbody > tr[data-testid=sport-heading] > td { background: linear-gradient(90deg, color-mix(in srgb, var(--ed-deep, var(--ed-primary)) 45%, transparent), transparent 70%); border-radius: 12px; }
+
+/* virtualised DataTable rows (absolutely positioned): the card is a ::before layer behind the cells */
+.ed-table [role=table] tbody tr.ed-row { background: none !important; box-shadow: none !important; }
+.ed-table [role=table] tbody tr.ed-row::before { content: ""; position: absolute; inset: 3px 10px; border-radius: 12px; background: var(--row); transition: background .15s ease, transform .15s ease; z-index: 0; }
+.ed-table [role=table] tbody tr.ed-row.ed-row-alt::before { background: var(--row-alt); }
+.ed-table [role=table] tbody tr.ed-row:hover::before { background: var(--row-hover); }
+.ed-table [role=table] tbody tr.ed-row[aria-selected=true]::before { background: color-mix(in srgb, var(--ed-accent) 22%, rgb(var(--surface2))); box-shadow: inset 5px 0 0 var(--ed-accent); }
+.ed-table [role=table] tbody tr.ed-row[data-medal=Gold]::before { background: rgb(var(--gold) / 0.16); box-shadow: inset 5px 0 0 rgb(var(--gold)); }
+.ed-table [role=table] tbody tr.ed-row[data-medal=Silver]::before { background: rgb(var(--silver) / 0.13); box-shadow: inset 5px 0 0 rgb(var(--silver)); }
+.ed-table [role=table] tbody tr.ed-row[data-medal=Bronze]::before { background: rgb(var(--bronze) / 0.15); box-shadow: inset 5px 0 0 rgb(var(--bronze)); }
+.ed-table [role=table] tbody tr.ed-row > td { position: relative; z-index: 1; border-bottom: 0; }
+.ed-table [role=table] tbody tr.ed-row > td:first-child { padding-left: 1.4rem; }
+.ed-table [role=table] tbody tr.ed-row > td:last-child { padding-right: 1.4rem; }
+.ed-table [role=table] thead tr th:first-child { padding-left: 1.4rem; }
+.ed-table [role=table] thead tr th:last-child { padding-right: 1.4rem; }
+
+/* names and numbers */
+.ed-table tbody td a { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.ed-table tbody td.tabnum, .ed-table tbody td.tabular-nums { font-variant-numeric: tabular-nums; }
+:root[data-theme="light"] .ed-table { --row: rgb(var(--surface2) / 0.9); --row-alt: rgb(var(--surface) / 1); }
+@media (prefers-reduced-motion: reduce) { .ed-table * { transition: none !important; } }
