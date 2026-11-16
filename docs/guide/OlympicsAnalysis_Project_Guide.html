@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Olympics Analysis — Project Guide, Tech Stack & Interview Prep</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+  :root { --blue:#0085C7; --yellow:#F4C300; --black:#111; --green:#009F3D; --red:#DF0024; --ink:#14202e; --muted:#5b6778; --line:#dfe5ee; --bg:#f6f8fb; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Inter, Arial, sans-serif; color: var(--ink); font-size: 10.6pt; line-height: 1.5; margin: 0; }
+  h1, h2, h3 { font-family: "Segoe UI Semibold", "Segoe UI", Arial, sans-serif; color: #0b1724; margin: 0; }
+  h2 { font-size: 17pt; margin: 0 0 8px; padding-bottom: 6px; border-bottom: 3px solid var(--blue); }
+  h3 { font-size: 12pt; margin: 14px 0 6px; color: #0b3d63; }
+  p { margin: 0 0 8px; }
+  section { break-inside: auto; margin-bottom: 18px; }
+  .page { break-before: page; }
+  .rings { display: flex; gap: 0; height: 6px; margin: 0 0 18px; }
+  .rings i { flex: 1; } .rings i:nth-child(1){background:var(--blue)} .rings i:nth-child(2){background:var(--yellow)} .rings i:nth-child(3){background:var(--black)} .rings i:nth-child(4){background:var(--green)} .rings i:nth-child(5){background:var(--red)}
+  .cover { height: 255mm; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+  .cover h1 { font-size: 34pt; letter-spacing: .5px; }
+  .cover .sub { font-size: 14pt; color: var(--muted); margin: 10px 0 26px; }
+  .cover .links { font-size: 11pt; line-height: 1.9; }
+  .cover .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 30px 10mm 0; }
+  .stat { background: var(--bg); border: 1px solid var(--line); border-top: 4px solid var(--blue); border-radius: 10px; padding: 10px 6px; }
+  .stat:nth-child(2){border-top-color:var(--yellow)} .stat:nth-child(3){border-top-color:var(--black)} .stat:nth-child(4){border-top-color:var(--green)} .stat:nth-child(5){border-top-color:var(--red)} .stat:nth-child(6){border-top-color:var(--blue)} .stat:nth-child(7){border-top-color:var(--green)} .stat:nth-child(8){border-top-color:var(--red)}
+  .stat b { display: block; font-size: 17pt; color: #0b1724; } .stat span { font-size: 8.5pt; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .toc ol { columns: 2; margin: 6px 0 0 18px; padding: 0; } .toc li { margin: 3px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 9.6pt; }
+  tr { break-inside: avoid; } thead { display: table-header-group; }
+  th { background: #0b3d63; color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; }
+  td { border-bottom: 1px solid var(--line); padding: 5px 8px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .box { background: var(--bg); border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 8px; padding: 10px 12px; margin: 8px 0 12px; break-inside: avoid; }
+  .box.green { border-left-color: var(--green); } .box.red { border-left-color: var(--red); } .box.yellow { border-left-color: var(--yellow); }
+  pre { background: #0f1b2b; color: #e6edf6; border-radius: 8px; padding: 10px 12px; font-size: 8.6pt; line-height: 1.45; white-space: pre; overflow: hidden; break-inside: avoid; margin: 6px 0 12px; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #eef2f7; padding: 0 3px; border-radius: 3px; }
+  pre code { background: none; padding: 0; }
+  ul { margin: 4px 0 10px 18px; padding: 0; } li { margin: 2px 0; }
+  .qa { break-inside: avoid; margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
+  .qa .q { font-weight: 700; color: #0b3d63; margin-bottom: 3px; }
+  .qa .q::before { content: "Q  "; color: var(--red); }
+  .qa .a::before { content: "A  "; font-weight: 700; color: var(--green); }
+  .tag { display: inline-block; font-size: 8pt; padding: 1px 7px; border-radius: 99px; background: #e7f3fb; color: #0b3d63; margin: 0 3px 3px 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  h2, h3 { break-after: avoid; page-break-after: avoid; }
+  .flow { display: grid; grid-template-columns: 1fr 34px 1fr 34px 1fr 34px 1fr; align-items: stretch; margin: 8px 0 10px; break-inside: avoid; }
+  .node { background: var(--bg); border: 1px solid var(--line); border-top: 4px solid var(--blue); border-radius: 10px; padding: 8px 9px; font-size: 9pt; }
+  .node b { display: block; font-size: 10.5pt; margin-bottom: 3px; } .node span { color: var(--muted); }
+  .arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18pt; color: var(--blue); line-height: 1; }
+  .arrow small { font-size: 6.5pt; color: var(--muted); text-align: center; line-height: 1.2; margin-top: 2px; }
+  .foot { color: var(--muted); font-size: 8.5pt; text-align: center; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<!-- ================================================================ cover -->
+<div class="cover">
+  <div class="rings"><i></i><i></i><i></i><i></i><i></i></div>
+  <h1>Olympics Analysis</h1>
+  <div class="sub">How the project works · Tech stack · Interview preparation</div>
+  <div class="links">
+    Live website: <b>https://olympicsanaylsis.vercel.app</b><br />
+    Source code: <b>https://github.com/alirazach476/OlympicsAnaylsis</b>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>35</b><span>Olympic Games</span></div>
+    <div class="stat"><b>132,901</b><span>Athletes</span></div>
+    <div class="stat"><b>230</b><span>NOCs</span></div>
+    <div class="stat"><b>6,547</b><span>Events</span></div>
+    <div class="stat"><b>16,730</b><span>Medals</span></div>
+    <div class="stat"><b>67,099</b><span>Matches</span></div>
+    <div class="stat"><b>2.7 GB</b><span>Warehouse</span></div>
+    <div class="stat"><b>350+</b><span>Automated tests</span></div>
+  </div>
+  <div class="toc" style="text-align:left;margin:34px 12mm 0">
+    <h3>Contents</h3>
+    <ol>
+      <li>Project summary (the 60-second pitch)</li>
+      <li>System architecture</li>
+      <li>Tech stack</li>
+      <li>Data pipeline &amp; warehouse</li>
+      <li>Backend API (FastAPI)</li>
+      <li>Frontend (React)</li>
+      <li>Edition theme engine</li>
+      <li>Broadcast tables &amp; scoreboards</li>
+      <li>Data quality &amp; honesty rules</li>
+      <li>Testing</li>
+      <li>Deployment (runs without your PC)</li>
+      <li>Challenges &amp; solutions</li>
+      <li>Interview questions &amp; answers</li>
+      <li>Quick reference: numbers to remember</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ================================================================ 1 -->
+<section class="page">
+  <div class="rings"><i></i><i></i><i></i><i></i><i></i></div>
+  <h2>1. Project summary — the 60-second pitch</h2>
+  <div class="box">
+    <p><b>Olympics Analysis</b> is a full-stack data platform covering every Summer Olympics from Rome 1960 to Paris 2024 and every Winter Olympics from Squaw Valley 1960 to Milano Cortina 2026.</p>
+    <p>I built the whole chain: <b>data collection</b> from Olympedia and Wikipedia, a <b>layered SQLite data warehouse</b> (bronze → silver → gold, 116 tables, 2.7 GB), a <b>FastAPI</b> backend with 100+ endpoints, and a <b>React + TypeScript</b> website that presents results like a TV broadcast.</p>
+    <p>Every Games has its own visual identity: the site recolours itself from each edition's logo and artwork. Users can drill down from an edition to a sport, an event, and every round, heat, match and bout — or explore any country's complete Olympic record, medal statistics and 100+ analytics charts.</p>
+  </div>
+  <h3>What a user can do</h3>
+  <ul>
+    <li><b>Global Overview</b> — Olympic-wide statistics, every edition with its emblem, historical charts.</li>
+    <li><b>Summer / Winter Olympics</b> — galleries of all editions; upcoming Games (LA 2028 → Salt Lake 2034) marked <i>Coming soon</i>.</li>
+    <li><b>Edition page</b> — themed hero with mascot; Medal Standings, Event Results (sport pictograms → events), Participants (all 14,884 entries for Tokyo 2020), Sports, Records, Venues, Gender Statistics.</li>
+    <li><b>Event results</b> — every saved Olympedia table; team squads folded under “+”; match, bout and heat detail pages with previous/next navigation; broadcast scoreboards per sport.</li>
+    <li><b>Countries &amp; Medal Statistics</b> — the complete table of 231 NOCs with filters; country profile with <i>Visuals</i> and <i>Results</i> (a sidebar of every Games and the country's full Olympedia table).</li>
+    <li><b>Athletes, Records, Analytics</b> — rankings, record books, statistics, machine-learning backtests, team-sport analysis.</li>
+  </ul>
+  <h3>Why it is interesting technically</h3>
+  <ul>
+    <li>Real, messy, historical data: renamed countries (USSR, East/West Germany, ROC), team events, ties, boycotts, many result formats.</li>
+    <li>A strict honesty rule: <b>nothing is invented</b>. Missing values stay empty; links only exist when the target exists.</li>
+    <li>A data-driven design system: one theme engine restyles 39 editions without per-page CSS.</li>
+    <li>Production concerns: virtualised tables for 15k rows, URL-driven state, browser history, lazy loading, accessibility, 350+ tests.</li>
+  </ul>
+</section>
+
+<!-- ================================================================ 2 -->
+<section>
+  <h2>2. System architecture</h2>
+<div class="flow">
+  <div class="node" style="border-top-color:var(--blue)"><b>Sources</b><span>Olympedia<br/>Wikipedia (MediaWiki API)<br/>open datasets</span></div>
+  <div class="arrow">→<small>scrapers<br/>loaders</small></div>
+  <div class="node" style="border-top-color:var(--yellow)"><b>Warehouse</b><span>SQLite · 2.7 GB<br/>bronze → silver → gold<br/>37 validation checks</span></div>
+  <div class="arrow">→<small>SQL</small></div>
+  <div class="node" style="border-top-color:var(--green)"><b>API</b><span>FastAPI · Python 3.12<br/>/api/… JSON + CSV<br/>caching</span></div>
+  <div class="arrow">→<small>JSON</small></div>
+  <div class="node" style="border-top-color:var(--red)"><b>Website</b><span>React 18 · TypeScript<br/>TanStack Query<br/>theme engine · charts</span></div>
+</div>
+<div class="box" style="text-align:center"><b>Deployment:</b> Vercel (website on a global CDN) &nbsp;—<code>/api/*</code> rewrite→&nbsp; cloud host running the API + warehouse</div>
+  <p>The website and the API are separate. The browser always calls <code>/api/...</code> on the same domain; Vercel forwards those calls to the API host. This avoids CORS and means the frontend code never changes between local development and production.</p>
+  <h3>Request flow example — opening an event page</h3>
+  <ol>
+    <li>User opens <code>/games/2024_summer/events/19000360</code>. React Router renders <code>EventResultsPage</code>.</li>
+    <li>TanStack Query calls <code>GET /api/events/19000360</code> (cached for 5 minutes, de-duplicated).</li>
+    <li>FastAPI loads the saved Olympedia tables for that page, adds in-app routes to every link (athletes, matches, heats), and returns JSON.</li>
+    <li>The page classifies each table (heat / final / match list / bout) and renders the matching broadcast component, themed for Paris 2024.</li>
+  </ol>
+</section>
+
+<!-- ================================================================ 3 -->
+<section>
+  <h2 style="margin-top:6px">3. Tech stack</h2>
+  <table>
+    <thead><tr><th style="width:22%">Layer</th><th style="width:38%">Technology</th><th>Why / how it is used</th></tr></thead>
+    <tr><td><b>Frontend</b></td><td>React 18, TypeScript, Vite</td><td>Component UI, type safety, fast dev server and production build with code-splitting (lazy routes).</td></tr>
+    <tr><td></td><td>React Router 6</td><td>All state that matters lives in the URL (<code>?tab=&amp;sport=&amp;r_edition=</code>) → shareable links, Back/Forward works.</td></tr>
+    <tr><td></td><td>TanStack Query</td><td>Server-state cache: de-duplication, 5-minute stale time, keep-previous-data on filter changes (no page jumps).</td></tr>
+    <tr><td></td><td>TanStack Table + Virtual</td><td>Sortable, filterable tables; virtualisation renders only visible rows (14,884 participants stay smooth).</td></tr>
+    <tr><td></td><td>Tailwind CSS + CSS variables</td><td>Utility styling; edition themes injected as CSS variables (<code>--ed-primary</code>, <code>--ed-bg-img</code>…).</td></tr>
+    <tr><td></td><td>Recharts, Framer Motion, lucide-react</td><td>100+ charts, page transitions (respecting reduced motion), icons.</td></tr>
+    <tr><td><b>Backend</b></td><td>FastAPI, Uvicorn, Pydantic</td><td>Typed REST API with automatic OpenAPI docs at <code>/docs</code>; async server.</td></tr>
+    <tr><td></td><td>SQLAlchemy 2 + SQLite</td><td>Engine/session management; raw SQL for analytical queries; SQLite = single-file, zero-ops warehouse.</td></tr>
+    <tr><td></td><td>pandas, NumPy, SciPy</td><td>Statistics endpoints (tests, distributions, correlations) and chart data.</td></tr>
+    <tr><td><b>Data engineering</b></td><td>requests, BeautifulSoup, lxml</td><td>Polite, resumable scrapers for Olympedia and the MediaWiki API (rate limits, robots rules).</td></tr>
+    <tr><td></td><td>dbt-style SQL models, Dagster definitions, Alembic</td><td>Layered transformations (bronze/silver/gold), orchestration definitions, schema migrations.</td></tr>
+    <tr><td></td><td>Pillow</td><td>Extracts each edition's colour palette from its own logo for the theme engine.</td></tr>
+    <tr><td><b>Machine learning</b></td><td>scikit-learn, XGBoost, MLflow</td><td>Historical backtests (medal prediction with chronological validation), model registry and tracking.</td></tr>
+    <tr><td><b>Testing</b></td><td>pytest, Vitest + Testing Library, Puppeteer</td><td>112 backend tests, 238 frontend tests, browser acceptance suites (real Chrome), visual sweeps of 464 pages.</td></tr>
+    <tr><td><b>Deployment</b></td><td>Vercel, Docker, Hugging Face Hub, GitHub</td><td>Website on Vercel CDN; API containerised; warehouse stored in a private Hugging Face dataset; code on GitHub.</td></tr>
+  </table>
+</section>
+
+<!-- ================================================================ 4 -->
+<section>
+  <h2>4. Data pipeline &amp; warehouse</h2>
+  <h3>Sources</h3>
+  <ul>
+    <li><b>Olympedia</b> — the reference database of Olympic results: event pages, rounds, heats, match and bout pages, country-by-edition pages, records.</li>
+    <li><b>Wikipedia</b> (MediaWiki API) — edition information, venues, assets (logos, backgrounds, mascots, pictograms).</li>
+    <li>Open historical datasets for cross-checking athlete participations.</li>
+  </ul>
+  <h3>Layers (medallion architecture)</h3>
+  <table>
+    <thead><tr><th>Layer</th><th>Contents</th><th>Examples</th></tr></thead>
+    <tr><td><b>Bronze</b></td><td>Raw collected data, exactly as published, with source URL and timestamp</td><td><code>olympedia_pages</code>, <code>olympedia_page_tables</code> (211,403 saved tables), <code>wikipedia_pages</code></td></tr>
+    <tr><td><b>Silver</b></td><td>Cleaned, typed, linked entities</td><td><code>silver_participations</code> (263,893 rows), <code>silver_medal_awards</code>, <code>olympedia_matches</code>, <code>olympedia_page_links</code> (94,489 links), athlete id cross-reference (124,926)</td></tr>
+    <tr><td><b>Gold</b></td><td>Business-level marts served by the API</td><td><code>gold_country_medals</code>, <code>gold_edition_performance</code>, <code>gold_sport_performance</code>, <code>gold_records</code></td></tr>
+  </table>
+  <h3>Pipeline properties</h3>
+  <ul>
+    <li><b>Resumable</b> — every stage records progress, so a crash or a rate-limit pause resumes where it stopped.</li>
+    <li><b>Polite</b> — rate limiting, retries with back-off (tenacity), respect for robots rules; no authentication or CAPTCHA bypass.</li>
+    <li><b>Validated</b> — 37 expectation checks (row counts, referential integrity, medal reconciliation, link resolution).</li>
+    <li><b>Provenance</b> — every record keeps its source URL; the UI links back to Olympedia.</li>
+  </ul>
+  <div class="box yellow"><b>Medal counting convention.</b> One medal per podium place per NOC per event (a team medal counts once; ties each count). Historical NOCs are never merged: URS, EUN, RUS, ROC, OAR, AIN, GDR, FRG, EUA and GER stay separate rows. Result: USA at Paris 2024 = 40 gold, 44 silver, 42 bronze, matching the official table.</div>
+</section>
+
+<!-- ================================================================ 5 -->
+<section>
+  <h2 style="margin-top:6px">5. Backend API (FastAPI)</h2>
+  <p>The API is organised in routers: <code>platform</code> (games, countries, athletes, records), <code>olympic</code> (Olympedia-style pages), <code>pages</code> (matches, scoreboards), <code>viz</code> (100+ chart datasets), <code>explorer</code> and <code>routes</code>.</p>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Returns</th></tr></thead>
+    <tr><td><code>GET /api/games?include_upcoming=1</code></td><td>All 39 editions with headline numbers; upcoming Games flagged.</td></tr>
+    <tr><td><code>GET /api/games/{id}/events</code></td><td>Edition event index grouped by sport (with match / heat counts).</td></tr>
+    <tr><td><code>GET /api/events/{id}</code></td><td>One event: header facts, podium, stages, every saved table with in-app links, siblings for prev/next.</td></tr>
+    <tr><td><code>GET /api/subpages/{id}</code></td><td>A match, bout or heat page with its position in the event (n of m).</td></tr>
+    <tr><td><code>GET /api/matches/{id}</code></td><td>Scoreboard data: teams, periods, statistics, goals, cards, line-ups, officials.</td></tr>
+    <tr><td><code>GET /api/medals/countries</code></td><td>Medal table with filters (season, years, edition, sport, gender, medal), ranks, appearances.</td></tr>
+    <tr><td><code>GET /api/countries/{noc}/results</code></td><td>Every entry of a country across all Games (USA: 10,366), medal or not.</td></tr>
+    <tr><td><code>GET /api/countries/{noc}/olympedia/{games}</code></td><td>The country's full Olympedia table for one edition, with links.</td></tr>
+    <tr><td><code>GET /api/games/{id}/participants</code> · <code>/gender</code></td><td>All athlete entries; gender breakdown by sport, NOC and event.</td></tr>
+    <tr><td><code>GET /api/viz/chart/{id}</code></td><td>Data + metadata for one of 100+ registered charts.</td></tr>
+  </table>
+  <h3>Design decisions</h3>
+  <ul>
+    <li><b>Link annotation</b> — saved Olympedia links are turned into in-app routes only when the target page exists (no dead links).</li>
+    <li><b>Caching</b> — expensive indexes (edition event index, appearances) use <code>lru_cache</code>; overview data uses a TTL cache.</li>
+    <li><b>CSV everywhere</b> — list endpoints accept <code>?format=csv</code>.</li>
+    <li><b>Honest joins</b> — e.g. participant events are matched to result pages only on exact normalised names (81% of Tokyo 2020 entries link; the rest stay plain text rather than guessing).</li>
+  </ul>
+</section>
+
+<!-- ================================================================ 6-8 -->
+<section>
+  <h2>6. Frontend (React)</h2>
+  <ul>
+    <li><b>Routing</b> — 40+ routes, lazy-loaded pages; canonical redirects (a link with the wrong edition is corrected so the theme always matches the data).</li>
+    <li><b>URL state</b> — a <code>useParamState</code> hook stores filters in the query string; a small shared store composes several updates in one click (sort + order) into one history entry.</li>
+    <li><b>Scroll manager</b> — new pages start at the top; Back/Forward restore the exact scroll position after data loads.</li>
+    <li><b>Keyboard safety</b> — arrow keys on a closed dropdown scroll the page instead of silently changing a filter.</li>
+    <li><b>Performance</b> — virtualised tables, lazy charts (load when scrolled into view), keep-previous-data, code-split bundles.</li>
+    <li><b>Accessibility</b> — semantic tables, labelled controls, focus states, reduced-motion support, dark &amp; light themes.</li>
+  </ul>
+  <h2 style="margin-top:14px">7. Edition theme engine</h2>
+  <p>A build script reads each edition's logo and background, extracts a colour palette with Pillow, and writes a registry (<code>editions.json</code>). At runtime <code>themeVars()</code> converts an edition into CSS variables: primary/secondary/accent colours (adjusted to WCAG contrast), tinted surfaces, the palette stripe, the deepest colour for header bands, and the artwork/emblem URLs. Every component uses those variables — so switching from Rio 2016 to Beijing 2022 restyles the menu, page background, table headers and scoreboards with no per-page CSS.</p>
+  <h2 style="margin-top:14px">8. Broadcast tables &amp; scoreboards</h2>
+  <ul>
+    <li><b>Tables</b> — dark header band with the edition emblem (left) and sport pictogram (right); rows as cards; gold/silver/bronze rows tinted with a medal bar; qualifiers marked; squads folded under “+”; CSV export.</li>
+    <li><b>Scoreboards</b> — one shared frame (edition, sport, stage ribbon, venue) and a sport-specific body: football HT/FT/extra time and scorers, basketball line score, volleyball sets, ice hockey periods, curling ends and hammer, baseball R-H-E, boxing corners, athletics/swimming/gymnastics leaderboards.</li>
+    <li><b>Abbreviation legend</b> — explains only the codes present on the page (DNS, DNF, DQ, Q/q, OR/WR, “Match 1/2” = gold-medal match).</li>
+  </ul>
+</section>
+
+<!-- ================================================================ 9-12 -->
+<section>
+  <h2 style="margin-top:6px">9. Data quality &amp; honesty rules</h2>
+  <div class="box red">
+    <b>Never invent data.</b> No fake records, no guessed meanings, no decorative links. If a value is missing it is shown as “—”; if a pictogram is missing the sport's initials are shown instead of a random icon; codes whose meaning the data does not establish are left unexplained.
+  </div>
+  <ul>
+    <li>Example: the 2021 men's hockey final shows 1–1 because the shoot-out is not recorded; the board does not make up the result.</li>
+    <li>Example: a baseball header score disagreed with the box score — the R-H-E box is used as the authority.</li>
+    <li>Example: one Tokyo 2020 athlete has no recorded gender — reported as “unrecorded”, never guessed.</li>
+  </ul>
+  <h2 style="margin-top:14px">10. Testing</h2>
+  <table>
+    <thead><tr><th>Suite</th><th>Count</th><th>What it proves</th></tr></thead>
+    <tr><td>Backend (pytest)</td><td>112</td><td>Endpoints, medal reconciliation, link resolution, country results, gender consistency.</td></tr>
+    <tr><td>Frontend (Vitest)</td><td>238</td><td>Components plus integration tests against the live API.</td></tr>
+    <tr><td>Browser acceptance (Puppeteer)</td><td>~150 checks</td><td>Real user journeys: pictogram → events, match → Back restores scroll, filters survive refresh, keyboard dropdowns.</td></tr>
+    <tr><td>Visual sweep</td><td>464 pages</td><td>Every edition on desktop and phone: no errors, no overflow, 35 distinct themes.</td></tr>
+    <tr><td>Data validation</td><td>37 checks</td><td>Warehouse integrity before the API serves it.</td></tr>
+  </table>
+  <h2 style="margin-top:14px">11. Deployment — the site runs when your PC is off</h2>
+  <ul>
+    <li><b>Website</b> — Vercel builds the React app and serves it from a global CDN: <b>https://olympicsanaylsis.vercel.app</b>. Always on, free.</li>
+    <li><b>API + database</b> — packaged as a Docker image (<code>deploy/huggingface/</code>). The 2.7 GB warehouse is stored in a private Hugging Face dataset and downloaded by the server on first start.</li>
+    <li><b>Connection</b> — <code>frontend/vercel.json</code> rewrites <code>/api/*</code> to the API host, so the browser only ever talks to one domain.</li>
+    <li><b>Code</b> — GitHub repository with the README, screenshots and setup instructions; the database is excluded from git (100 MB file limit) and rebuilt by the pipeline.</li>
+  </ul>
+  <h2 style="margin-top:14px">12. Challenges &amp; how I solved them</h2>
+  <table>
+    <thead><tr><th style="width:35%">Challenge</th><th>Solution</th></tr></thead>
+    <tr><td>Historical countries and renamed NOCs</td><td>Kept every historical NOC separate; documented the medal convention; reconciled against official tables.</td></tr>
+    <tr><td>Team events vs individual events</td><td>Detect squad rows (no NOC, playing position in Pos) and fold them under the team row like Olympedia.</td></tr>
+    <tr><td>Dozens of result formats</td><td>Classify tables (heat / final / match list / bout / key-value) and render each with its own component.</td></tr>
+    <tr><td>Two filter updates in one click lost one</td><td>React Router setters see stale params; added a shared update store keyed by history entry.</td></tr>
+    <tr><td>Page jumping on filter change</td><td>Keep previous data while refetching; scroll manager; no anchor links.</td></tr>
+    <tr><td>Large tables (15k rows)</td><td>Virtualised rendering with TanStack Virtual.</td></tr>
+    <tr><td>2.7 GB database vs free hosting limits</td><td>Separate static website (Vercel) from the API; warehouse in object storage, downloaded at server start.</td></tr>
+    <tr><td>Hidden chart bugs once sections opened</td><td>Console-error sweeps per page; fixed duplicate React keys and log-axis ticks.</td></tr>
+  </table>
+</section>
+
+<!-- ================================================================ 13 interview -->
+<section class="page">
+  <div class="rings"><i></i><i></i><i></i><i></i><i></i></div>
+  <h2>13. Interview questions &amp; model answers</h2>
+  <h3>Project &amp; motivation</h3>
+  <div class="qa"><div class="q">Tell me about this project.</div><div class="a">It's an end-to-end Olympic data platform: I collected results from Olympedia and Wikipedia, modelled them in a layered SQLite warehouse, exposed them through a FastAPI backend and built a React website that presents 35 Games like a sports broadcast — every edition themed from its own logo, with drill-down from edition to sport, event, heat, match and bout, plus country, athlete and analytics views.</div></div>
+  <div class="qa"><div class="q">What was the hardest part?</div><div class="a">Data correctness. Olympic history has renamed countries, team events, ties and boycotts. I enforced a rule to never invent data, kept historical NOCs separate, reconciled medal counts with official tables and wrote validation checks. On the frontend, the hardest part was URL-driven state: getting filters, history and scroll restoration to behave like a native app.</div></div>
+  <div class="qa"><div class="q">What would you improve next?</div><div class="a">Move the warehouse to a managed database (for example Postgres or a hosted SQLite service) for multi-user scaling, add incremental pipeline runs for new Games, server-side pagination for the biggest tables, and end-to-end tests in CI on every push.</div></div>
+
+  <h3>Data engineering</h3>
+  <div class="qa"><div class="q">Why a bronze / silver / gold structure?</div><div class="a">Bronze keeps raw data exactly as published, so I can always re-derive; silver holds cleaned, linked entities; gold holds the aggregates the API serves. A parsing bug only requires re-running silver/gold, not re-scraping, and every number can be traced back to its source URL.</div></div>
+  <div class="qa"><div class="q">How did you scrape responsibly?</div><div class="a">Rate limiting, retries with exponential back-off, respecting robots rules, caching pages so nothing is fetched twice, and a resumable design. I never bypassed authentication or CAPTCHAs.</div></div>
+  <div class="qa"><div class="q">How do you ensure data quality?</div><div class="a">37 automated expectation checks (counts, referential integrity, link resolution, medal reconciliation), provenance on every record, and a policy of leaving missing values empty. For example, USA's Paris 2024 medals (40-44-42) match the official table.</div></div>
+  <div class="qa"><div class="q">Why SQLite instead of Postgres?</div><div class="a">The workload is read-heavy analytics by one service, and SQLite gives a single portable file with zero operations and very fast local reads. The project also contains Alembic migrations and a SQLite→Postgres script, so switching is straightforward if concurrent writes or scale require it.</div></div>
+
+  <h3>Backend</h3>
+  <div class="qa"><div class="q">Why FastAPI?</div><div class="a">Type hints drive validation and automatic OpenAPI documentation, it's fast, and it's simple to structure into routers. The <code>/docs</code> page made frontend integration and testing easy.</div></div>
+  <div class="qa"><div class="q">How did you make the API fast?</div><div class="a">Pre-aggregated gold tables, indexes on lookup columns, <code>lru_cache</code> for expensive indexes, TTL caching for the overview, returning only needed columns, and letting the client cache with TanStack Query. A country's 10,366 results return in about 1.6 seconds.</div></div>
+  <div class="qa"><div class="q">How do you avoid broken links?</div><div class="a">The API annotates every saved link with an in-app route only when the target exists (a saved page or a known athlete); otherwise it links to the source or shows plain text.</div></div>
+</section>
+
+<section>
+  <h3>Frontend</h3>
+  <div class="qa"><div class="q">How does the theming work for 39 editions?</div><div class="a">A script extracts each edition's palette from its logo into a registry. At runtime a function converts the edition into CSS variables (colours with WCAG-adjusted contrast, tinted surfaces, artwork URLs). Components only use variables, so one theme engine restyles the whole site — no per-edition CSS.</div></div>
+  <div class="qa"><div class="q">How did you handle very large tables?</div><div class="a">Virtualisation with TanStack Virtual: only the visible rows exist in the DOM, so a 14,884-row participants table scrolls smoothly. Sorting and searching run on the loaded data.</div></div>
+  <div class="qa"><div class="q">Why keep filters in the URL?</div><div class="a">Shareable links, refresh-safe state and working Back/Forward. I found a subtle bug: two setters in one click overwrote each other because React Router gives each setter a stale copy of the params. I fixed it with a tiny store that composes updates within the same history entry.</div></div>
+  <div class="qa"><div class="q">How did you test the UI?</div><div class="a">Vitest + Testing Library for components and live-API integration, and Puppeteer suites driving real Chrome through user journeys (click a pictogram, open a match, press Back, check scroll and filters), plus visual sweeps of every edition on desktop and phone.</div></div>
+  <div class="qa"><div class="q">How do you handle accessibility?</div><div class="a">Semantic tables and headings, labelled controls (I renamed duplicate labels like two “Season” filters), keyboard-operable sorting, visible focus, reduced-motion support and contrast-checked theme colours.</div></div>
+
+  <h3>Deployment &amp; DevOps</h3>
+  <div class="qa"><div class="q">How is it deployed?</div><div class="a">The React build is on Vercel's CDN. The API is a Docker image; the 2.7 GB warehouse lives in a private Hugging Face dataset and is downloaded on server start. Vercel rewrites <code>/api/*</code> to the API host, so there's no CORS and the frontend code is identical in development and production.</div></div>
+  <div class="qa"><div class="q">Why not put everything on Vercel?</div><div class="a">Vercel serverless functions have a bundle limit of about 250 MB, and the database is 2.7 GB. Separating a static frontend from a stateful API host is the standard pattern for this case.</div></div>
+  <div class="qa"><div class="q">How did you keep secrets safe?</div><div class="a">The <code>.env</code> file and tokens are git-ignored and excluded from Vercel uploads; before publishing I scanned all 1,487 files for tokens, keys and emails, and replaced a local default password with a placeholder.</div></div>
+
+  <h3>Behavioural</h3>
+  <div class="qa"><div class="q">Describe a bug you're proud of finding.</div><div class="a">Sorting the medal table by a column set the order but lost the column. The cause was React Router's functional updater receiving stale params when two setters ran in one handler. I reproduced it in a browser test, fixed it at the root in the shared URL-state hook, and the same fix repaired “Clear all” buttons elsewhere.</div></div>
+  <div class="qa"><div class="q">How did you handle changing requirements?</div><div class="a">Requirements evolved over many review rounds (layout of edition pages, where pictogram clicks lead, table design). I kept changes behind reusable components and URL state, wrote acceptance tests for each workflow, and re-ran all suites after every change so earlier features never regressed.</div></div>
+</section>
+
+<!-- ================================================================ 14 -->
+<section class="page">
+  <div class="rings"><i></i><i></i><i></i><i></i><i></i></div>
+  <h2>14. Quick reference — numbers to remember</h2>
+  <div class="two">
+    <table>
+      <thead><tr><th>Data</th><th>Value</th></tr></thead>
+      <tr><td>Olympic Games covered</td><td>35 held (17 Summer, 18 Winter) + 4 upcoming</td></tr>
+      <tr><td>Athletes</td><td>132,901</td></tr>
+      <tr><td>NOCs</td><td>230 (231 in the medal table incl. historical)</td></tr>
+      <tr><td>Events</td><td>6,547</td></tr>
+      <tr><td>Medals</td><td>16,730</td></tr>
+      <tr><td>Matches</td><td>67,099</td></tr>
+      <tr><td>Saved Olympedia tables</td><td>211,403</td></tr>
+      <tr><td>Warehouse</td><td>116 tables · 2.7 GB</td></tr>
+    </table>
+    <table>
+      <thead><tr><th>Engineering</th><th>Value</th></tr></thead>
+      <tr><td>API endpoints</td><td>100+ (incl. 100+ chart datasets)</td></tr>
+      <tr><td>Frontend routes</td><td>40+</td></tr>
+      <tr><td>Edition themes</td><td>39</td></tr>
+      <tr><td>Backend tests</td><td>112</td></tr>
+      <tr><td>Frontend tests</td><td>238</td></tr>
+      <tr><td>Validation checks</td><td>37</td></tr>
+      <tr><td>Visual sweep</td><td>464 pages, desktop + phone</td></tr>
+      <tr><td>Verified pictograms</td><td>705 / 816 sports</td></tr>
+    </table>
+  </div>
+  <h3>Run it locally</h3>
+<pre><code>pip install -r requirements.txt            # backend
+uvicorn backend.api.main:app --port 8000
+cd frontend && npm install && npm run dev  # website on http://127.0.0.1:5173
+pytest -q   ·   npx vitest run             # tests</code></pre>
+  <h3>Glossary</h3>
+  <p><span class="tag">NOC</span> National Olympic Committee · <span class="tag">Olympedia</span> reference Olympic results database · <span class="tag">Bronze/Silver/Gold</span> raw → clean → aggregated data layers · <span class="tag">Virtualisation</span> rendering only visible rows · <span class="tag">CDN</span> content delivery network · <span class="tag">Rewrite</span> server-side forwarding of a URL path · <span class="tag">Match 1/2</span> gold-medal match · <span class="tag">DNS / DNF / DQ</span> did not start / did not finish / disqualified</p>
+  <p class="foot">Olympics Analysis · https://olympicsanaylsis.vercel.app · https://github.com/alirazach476/OlympicsAnaylsis</p>
+</section>
+
+</body>
+</html>
