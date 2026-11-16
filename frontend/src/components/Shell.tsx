@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { OlympicRings } from "./OlympicRings";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Award, Home, Medal, Menu, Moon, Search, Snowflake, Sun, Trophy, Users, X, Dumbbell, LineChart } from "lucide-react";
 import { motion, MotionConfig } from "framer-motion";
 import { useTheme } from "../lib/theme";
@@ -85,9 +85,18 @@ export default function Shell() {
   return <EditionBrandProvider><ShellInner /></EditionBrandProvider>;
 }
 
-function EditionSwitcher() {
+function EditionSwitcher({ onPick }: { onPick?: () => void }) {
   const b = useEditionBrand();
   const reg = useRegistry();
+  const nav = useNavigate();
+  const loc = useLocation();
+  // choosing a Games opens it: its edition page (on a Games & Results page, that edition's results - handled by setGamesId)
+  const pick = (id: string) => {
+    if (!id) return;
+    if (/^\/(games|edition)\//.test(loc.pathname)) b.setGamesId(id);   // already navigates to the chosen edition's page / results
+    else nav(`/edition/${id}`);
+    onPick?.();
+  };
   const list = Object.values(reg.editions).filter((e) => e.year <= 2026).sort((a, c) => c.year - a.year || (a.season > c.season ? 1 : -1));
   if (!list.length) return null;
   const ed = b.edition;
@@ -104,7 +113,7 @@ function EditionSwitcher() {
         </span>
         <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-white transition group-hover:bg-white/25" aria-hidden>▾</span>
       </span>
-      <select aria-label="Selected edition" className="absolute inset-0 cursor-pointer opacity-0" value={b.gamesId} onChange={(e) => b.setGamesId(e.target.value)}>
+      <select aria-label="Selected edition" className="absolute inset-0 cursor-pointer opacity-0" value={b.gamesId} onChange={(e) => pick(e.target.value)}>
         {list.map((e) => <option key={e.editionId} value={e.editionId} className="bg-surface text-ink">{e.name} · {e.season}</option>)}
       </select>
     </label>
@@ -170,7 +179,7 @@ function ShellInner() {
           </div>
           <div className="relative mt-1.5 whitespace-nowrap text-[9.5px] font-semibold uppercase tracking-[0.16em] text-muted">Summer &amp; Winter · 1960–2026</div>
         </NavLink>
-        <EditionSwitcher />
+        <EditionSwitcher onPick={() => setOpen(false)} />
         <button className="mb-4 hidden w-full shrink-0 items-center justify-between rounded-xl border border-line bg-surface2/70 px-3 py-2 text-sm text-muted transition hover:border-[var(--ed-accent)] hover:text-ink lg:flex" onClick={() => setSearch(true)} aria-label="Search">
           <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" /> Search everything</span><kbd className="rounded-md border border-line bg-surface px-1.5 py-0.5 text-[10px]">Ctrl K</kbd>
         </button>
