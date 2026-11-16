@@ -43,7 +43,21 @@ A full Olympic history platform built on a hand-built data warehouse: **35 Games
 | **Heat / final table** | **Country results by edition** |
 | <img src="docs/screenshots/heat-table.png" alt="Heat table" /> | <img src="docs/screenshots/country-results.png" alt="Country results" /> |
 
+## 🧰 Tech stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 18 · TypeScript · Vite · Tailwind CSS · React Router · TanStack Query / Table / Virtual · Recharts · Framer Motion |
+| **Theme engine** | Per-edition palettes extracted from each logo, turned into CSS variables (`frontend/src/themes`) |
+| **Backend API** | Python 3.12 · FastAPI · Pydantic · SQLAlchemy · Uvicorn |
+| **Data & analytics** | SQLite warehouse · pandas · NumPy · SciPy · statsmodels · scikit-learn · XGBoost · SHAP · MLflow |
+| **Data pipeline** | Requests · BeautifulSoup · lxml · Tenacity (polite, cached crawling) · Dagster asset definitions · validation checks |
+| **Testing** | pytest (backend, 112 tests) · Vitest + Testing Library (frontend, 238 tests) · Puppeteer browser checks |
+| **Hosting (all free)** | Vercel (SPA + serverless Python API) · Hugging Face Datasets (compressed warehouse shards) · GitHub |
+
 ## 🏗️ Architecture
+
+### System overview
 
 ```
             ┌──────────────────────────┐   /api/* (rewrite)   ┌───────────────────────────────────┐
@@ -55,9 +69,31 @@ A full Olympic history platform built on a hand-built data warehouse: **35 Games
                                                      Hugging Face dataset · 264 MB of gzipped SQLite shards
 ```
 
-* **Frontend** — React 18 · TypeScript · Vite · Tailwind · TanStack Query/Table/Virtual · Recharts · Framer Motion. A central theme engine (`frontend/src/themes`) turns each edition's registry entry (logo, background, palette) into CSS variables used by every surface.
-* **Backend** — FastAPI over a SQLite warehouse (`backend/api`): edition event index, event / match / bout / heat pages, medal tables, country results, participants, gender statistics, records, analytics and 100+ chart endpoints. Interactive docs at `/docs`.
-* **Warehouse** — bronze → silver → gold layers loaded by the pipeline in `scripts/` and `backend/` from **Olympedia** (results pages, matches, country pages) and **Wikipedia** (editions, assets), with validation checks and provenance on every record. Nothing is invented: missing values stay empty.
+### Data flow (medallion pipeline)
+
+```
+ Olympedia ─┐                 ┌─────────┐      ┌─────────┐      ┌─────────┐      ┌──────────────┐
+ Wikipedia ─┼─ crawl & cache ►│ Bronze  │ ───► │ Silver  │ ───► │  Gold   │ ───► │ FastAPI + UI │
+ Kaggle CSV ┘  (rate-limited) │ raw rows│ clean│ typed,  │ agg. │ medals, │ serve│ pages, charts│
+                              └─────────┘      │ deduped │      │ records │      └──────────────┘
+                                               └─────────┘      └─────────┘
+                       validation checks + provenance (source URL) on every record
+```
+
+### How a request flows
+
+1. The browser loads the React SPA from Vercel; routes such as `/edition/2020_summer` or `/countries/USA` are client-side.
+2. Pages call `/api/...`. Vercel rewrites these to the serverless FastAPI function, so there is no CORS and no second domain for the user.
+3. On a cold start the function downloads the gzipped SQLite shards and loads them into one in-memory connection (first shard as `main`, the rest `ATTACH`ed); warm requests are answered from RAM in about a second.
+4. FastAPI routers (`olympic`, `pages`, `platform`, `viz`, `explorer`) run read-only SQL and return JSON; chart endpoints build their payload with pandas and the frontend draws it with Recharts.
+5. TanStack Query caches responses; filters live in the URL so every view is shareable and Back/Forward restores it.
+
+### Components
+
+* **Frontend** (`frontend/`) — pages, broadcast tables and scoreboards, chart gallery, and a central theme engine that turns each edition's registry entry (logo, background, palette) into CSS variables used by every surface.
+* **Backend** (`backend/api`) — edition event index, event / match / bout / heat pages, medal tables, country results, participants, gender statistics, records, analytics and 100+ chart endpoints. Interactive docs at `/docs`.
+* **Warehouse** (`backend/`, `scripts/`) — bronze → silver → gold layers loaded from **Olympedia** (results, matches, country pages) and **Wikipedia** (editions, assets). Nothing is invented: missing values stay empty.
+* **Slim deployment** (`scripts/build_slim_db.py`, `deploy/vercel-api/`) — copies only the tables the API reads, compresses large JSON columns, and splits the result into shards that fit Vercel's limits.
 
 ## 🚀 Run locally
 
