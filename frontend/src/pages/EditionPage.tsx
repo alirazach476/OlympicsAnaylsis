@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate, useNavigationType, useParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useApi, csvUrl } from "../lib/api";
-import { Async, ChartCard, Empty, Kpi, Tabs } from "../components/ui";
+import { Async, ChartCard, Empty, ErrorBox, Kpi, Tabs } from "../components/ui";
 import { DataTable } from "../components/DataTable";
 import { MedalTable, RecordsTable, SportStatisticsTable } from "../components/tables/BroadcastTables";
 import { Bars, LineSeries } from "../charts/charts";
@@ -29,6 +29,15 @@ export default function EditionPage() {
   const q = useApi<any>(`/games/${gamesId}`);
   const { theme: mode } = useTheme();
   const { edition, style } = useEditionTheme(gamesId, mode);
+  if (q.error && edition && edition.year <= 2026) {   // a held Games while the data server is unreachable: its themed hero + the offline notice
+    const e = { host_city: edition.hostCity, host_country: edition.hostCountry, year: edition.year, season: edition.season };
+    return (
+      <div data-season={edition.season} style={style} data-edition={gamesId}>
+        <EditionHero edition={edition} e={e} />
+        <ErrorBox error={q.error} />
+      </div>
+    );
+  }
   if (q.error && edition) {   // an upcoming Games: its own themed page from the asset registry, and nothing invented
     const e = { host_city: edition.hostCity, host_country: edition.hostCountry, year: edition.year, season: edition.season };
     return (

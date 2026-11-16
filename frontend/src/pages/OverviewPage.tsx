@@ -85,6 +85,7 @@ export default function OverviewPage() {
           <Section title="Summer Olympic Games" action={{ to: "/summer", label: "Summer Olympics" }} id="summer-editions"><EditionGallery items={summer.items} size="sm" testid="summer-gallery" /></Section>
           <Section title="Winter Olympic Games" action={{ to: "/winter", label: "Winter Olympics" }} id="winter-editions"><EditionGallery items={winter.items} size="sm" testid="winter-gallery" /></Section>
 
+
           <Section title="Medal statistics" action={{ to: "/countries", label: "Countries & Medal Statistics" }} id="medals">
             <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
               <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1" data-testid="top-countries">
@@ -142,6 +143,10 @@ export default function OverviewPage() {
           </Section>
         </>);
       }}</Async>
+      {q.error && <>
+        <Section title="Summer Olympic Games" action={{ to: "/summer", label: "Summer Olympics" }} id="summer-editions"><EditionGallery items={summer.items} size="sm" testid="summer-gallery" /></Section>
+        <Section title="Winter Olympic Games" action={{ to: "/winter", label: "Winter Olympics" }} id="winter-editions"><EditionGallery items={winter.items} size="sm" testid="winter-gallery" /></Section>
+      </>}
     </div>
   );
 }

@@ -30,8 +30,22 @@ export function useEditionList(season?: string): { items: GalleryItem[]; loading
         primary: e?.theme?.primary, accent: e?.theme?.accent, athletes: g.athletes, nocs: g.nocs, events: g.events, upcoming: !!g.upcoming || isUpcoming(g.year) };
     })
     .sort((a, b) => a.year - b.year || a.season.localeCompare(b.season));
+  // the data server is unreachable: build the gallery from the edition registry shipped with the website (emblems, names, colours; no numbers)
+  if (!items.length && games.error && Object.keys(reg.editions).length) {
+    const fallback = Object.values(reg.editions)
+      .filter((e) => !season || e.season === season)
+      .map((e): GalleryItem => ({ id: e.editionId, name: e.name, city: e.hostCity, country: e.hostCountry, noc: HOST_NOC[e.hostCountry], year: e.year, season: e.season, logo: e.assets.logo,
+        primary: e.theme?.primary, accent: e.theme?.accent, upcoming: isUpcoming(e.year) }))
+      .sort((a, b) => a.year - b.year || a.season.localeCompare(b.season));
+    return { items: fallback, loading: false };
+  }
   return { items, loading: games.isLoading };
 }
+
+/** Host country -> NOC code, for the host flag when only the edition registry is available. */
+const HOST_NOC: Record<string, string> = { Italy: "ITA", Japan: "JPN", Mexico: "MEX", "West Germany": "FRG", Germany: "GER", Canada: "CAN", "Soviet Union": "URS", "United States": "USA",
+  "South Korea": "KOR", Spain: "ESP", Australia: "AUS", Greece: "GRE", China: "CHN", "United Kingdom": "GBR", "Great Britain": "GBR", Brazil: "BRA", France: "FRA", Austria: "AUT",
+  Switzerland: "SUI", Yugoslavia: "YUG", Norway: "NOR", Russia: "RUS" };
 
 /**
  * Edition gallery: one tile per Games with its own emblem (medium size), city, year, host flag and headline numbers, edged in the edition's colours.
@@ -52,7 +66,7 @@ export function EditionGallery({ items, to = (i) => `/edition/${i.id}`, size = "
             <div className="flex items-baseline justify-between gap-2"><span className="truncate font-display text-lg font-semibold leading-none">{i.city}</span><span className="font-display text-lg leading-none tabular-nums text-ink" style={{ boxShadow: `inset 0 -3px 0 ${i.primary ?? "#888"}` }}>{i.year}</span></div>
             <div className="flex items-center gap-1.5 text-[11px] text-muted"><Flag noc={i.noc} size={11} /><span className="truncate">{i.country}</span><span className="ml-auto capitalize">{i.season}</span></div>
             {i.upcoming ? <div className="mt-1"><ComingSoon /></div>
-              : size === "md" && <div className="mt-1 grid grid-cols-3 gap-1 border-t border-line pt-1.5 text-center">
+              : size === "md" && i.athletes != null && <div className="mt-1 grid grid-cols-3 gap-1 border-t border-line pt-1.5 text-center">
                   {[["Athletes", i.athletes], ["NOCs", i.nocs], ["Events", i.events]].map(([k, v]) => <div key={k as string}><div className="font-display text-sm leading-none tabular-nums">{fmtInt(v as number)}</div><div className="text-[9px] uppercase tracking-wider text-muted">{k}</div></div>)}
                 </div>}
           </div>
@@ -117,7 +131,7 @@ export function EditionLogoWall({ items }: { items: GalleryItem[] }) {
               <span className="truncate font-display text-xl font-semibold uppercase leading-tight tracking-wide">{i.city}</span>
               <span className="flex items-center gap-1.5 text-xs text-muted"><Flag noc={i.noc} size={12} /><span className="truncate">{i.country}</span></span>
               {i.upcoming ? <span className="mt-1"><ComingSoon /></span>
-                : <span className="mt-1.5 grid grid-cols-3 gap-1 border-t border-line pt-1.5 text-center">
+                : i.athletes != null && <span className="mt-1.5 grid grid-cols-3 gap-1 border-t border-line pt-1.5 text-center">
                     {[["Athletes", i.athletes], ["NOCs", i.nocs], ["Events", i.events]].map(([k, v]) => <span key={k as string}><span className="block font-display text-base leading-none tabular-nums">{fmtInt(v as number)}</span><span className="text-[9px] uppercase tracking-wider text-muted">{k}</span></span>)}
                   </span>}
             </div>

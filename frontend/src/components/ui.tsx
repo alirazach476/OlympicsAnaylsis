@@ -24,13 +24,27 @@ export function Empty({ message = "No data for this selection." }: { message?: s
 }
 
 export function ErrorBox({ error }: { error: unknown }) {
+  const msg = String((error as any)?.message ?? error);
+  const local = typeof window !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+  // the data server is unreachable (gateway errors / network failure): say so plainly instead of a developer hint
+  // (our API's own 404s always carry a reason, e.g. "404 unknown games_id"; a bare "404 Not Found" means the server itself is missing)
+  const offline = /^(502|503|504)\b|^404( Not Found)?$|Failed to fetch|NetworkError/i.test(msg.trim());
+  if (offline && !local) return (
+    <div role="alert" data-testid="api-offline" className="flex items-start gap-3 rounded-xl border border-yellow/40 bg-yellow/10 p-4 text-sm">
+      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-yellow" />
+      <div>
+        <div className="font-semibold">Live results are temporarily unavailable</div>
+        <div className="text-muted">The Olympic data server is offline right now, so results, medal tables and charts cannot load. Edition logos and artwork are still available. Please check back soon.</div>
+      </div>
+    </div>
+  );
   return (
     <div role="alert" className="flex items-start gap-2 rounded-lg border border-red/40 bg-red/10 p-4 text-sm">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red" />
       <div>
         <div className="font-semibold">Could not load data</div>
-        <div className="text-muted">{String((error as any)?.message ?? error)}</div>
-        <div className="mt-1 text-xs text-muted">Is the API running? <code>uvicorn backend.api.main:app --port 8000</code></div>
+        <div className="text-muted">{msg}</div>
+        {local && <div className="mt-1 text-xs text-muted">Is the API running? <code>uvicorn backend.api.main:app --port 8000</code></div>}
       </div>
     </div>
   );
