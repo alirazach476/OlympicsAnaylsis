@@ -46,13 +46,13 @@ A full Olympic history platform built on a hand-built data warehouse: **35 Games
 ## 🏗️ Architecture
 
 ```
-            ┌──────────────────────────┐        /api/*  (rewrite)        ┌──────────────────────────────┐
- browser ──►│  Vercel · React SPA      │ ───────────────────────────────►│  Hugging Face Space · Docker │
-            │  frontend/  (Vite build) │                                 │  FastAPI  backend/api        │
-            └──────────────────────────┘                                 │  SQLite warehouse (2.7 GB)   │
-                                                                         └──────────────▲───────────────┘
-                                                                                        │ first boot
-                                                                         Hugging Face dataset (warehouse)
+            ┌──────────────────────────┐   /api/* (rewrite)   ┌───────────────────────────────────┐
+ browser ──►│  Vercel · React SPA      │ ────────────────────►│  Vercel · Python function         │
+            │  frontend/  (Vite build) │                      │  FastAPI backend/api              │
+            └──────────────────────────┘                      │  slim warehouse loaded into RAM   │
+                                                              └────────────────▲──────────────────┘
+                                                                               │ cold start (~20 s)
+                                                     Hugging Face dataset · 264 MB of gzipped SQLite shards
 ```
 
 * **Frontend** — React 18 · TypeScript · Vite · Tailwind · TanStack Query/Table/Virtual · Recharts · Framer Motion. A central theme engine (`frontend/src/themes`) turns each edition's registry entry (logo, background, palette) into CSS variables used by every surface.
@@ -82,7 +82,10 @@ npm run dev            # http://127.0.0.1:5173  (proxies /api to :8000)
 | Part | Where | How |
 |---|---|---|
 | Website | **Vercel** (free) — [olympicsanaylsis.vercel.app](https://olympicsanaylsis.vercel.app) | `cd frontend && vercel deploy --prod` · `frontend/vercel.json` rewrites `/api/*` to the API and serves the SPA |
-| API | **Hugging Face Spaces** (free, Docker) | `deploy/huggingface/` (Dockerfile, start script, Space card); the warehouse is downloaded from a Hugging Face dataset on first boot |
+| API | **Vercel** (free, serverless Python) — [olympicsanaylsis-api.vercel.app](https://olympicsanaylsis-api.vercel.app/docs) | `python deploy/vercel-api/prepare.py && cd deploy/vercel-api/build && vercel deploy --prod` |
+| Data | **Hugging Face dataset** (free) — [alirazach/olympics-slim](https://huggingface.co/datasets/alirazach/olympics-slim) | `python scripts/build_slim_db.py --gzip`, then upload `data/olympics_slim_*.db.gz` + `data/manifest.json` to `slim/` |
+
+**How the free API fits in Vercel's limits.** The 2.7 GB warehouse keeps every crawl artefact, but the site reads only part of it. `scripts/build_slim_db.py` copies just the tables the API serves, keeps exact row counts for the raw staging tables that are only counted, and zlib-compresses the large JSON columns. The result is about 1 GB of SQLite, split into four shards that gzip to 264 MB. On a cold start the function downloads the shards, deserializes them into one in-memory SQLite connection (the first as `main`, the others `ATTACH`ed) and serves every query from RAM. No value is changed: every API response was compared with the full warehouse, and they match.
 
 ## 🧪 Tests
 
@@ -97,7 +100,7 @@ cd frontend && npx vitest run # 238 frontend unit + live-API integration tests
 backend/      FastAPI app, loaders, scrapers, validators, analytics
 frontend/     React app (pages, broadcast tables & scoreboards, theme engine, charts)
 scripts/      pipeline and build scripts (warehouse, asset registry, coverage)
-deploy/       Hugging Face Space for the API
+deploy/       serverless API bundle (vercel-api/) and the older Docker Space files (huggingface/)
 docs/         architecture, source coverage, screenshots
 reports/      generated data-quality and coverage reports
 ```

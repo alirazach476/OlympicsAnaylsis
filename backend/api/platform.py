@@ -414,12 +414,30 @@ def data_quality():
             "reconciliation": rows("SELECT games_id, COUNT(*) nocs, SUM(wikipedia_total IS NULL) not_in_wikipedia, SUM(reconciliation_diff=0) exact, SUM(ABS(reconciliation_diff)<=2) within2, SUM(total) olympedia_total, SUM(wikipedia_total) wikipedia_total FROM gold_country_medals GROUP BY games_id ORDER BY games_id")}
 
 
+def _table_names() -> set:
+    """Names of all warehouse tables."""
+    try:  # slim deployment DB: the full warehouse's table list is recorded at build time
+        return {r["name"] for r in rows("SELECT name FROM _warehouse_tables")}
+    except Exception:  # noqa: BLE001
+        pass
+    return {r["name"] for r in rows("SELECT name FROM sqlite_master WHERE type='table'")}
+
+
+def _count(t: str):
+    """Live row count; the slim deployment DB keeps exact counts of dropped staging tables in _table_counts."""
+    try:
+        return scalar(f"SELECT COUNT(*) FROM {t}")
+    except Exception:  # noqa: BLE001
+        return scalar("SELECT n FROM _table_counts WHERE name = :t", t=t)
+
+
 @router.get("/data-engineering/pipeline-status", tags=["data-engineering"])
 def pipeline_status():
     inv = rows("SELECT dataset, rows, columns, missing_cells_pct FROM (SELECT name dataset FROM sqlite_master WHERE type='table') LEFT JOIN (SELECT 1 rows, 1 columns, 1 missing_cells_pct) ON 0") if False else []
-    layers = {"bronze_tables": scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND (name LIKE 'src\\_%' ESCAPE '\\' OR name LIKE 'olympedia\\_%' ESCAPE '\\' OR name LIKE 'wikipedia\\_%' ESCAPE '\\')"),
-              "silver_tables": scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name LIKE 'silver\\_%' ESCAPE '\\'"), "gold_tables": scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name LIKE 'gold\\_%' ESCAPE '\\' AND name!='gold_build_state'")}
-    counts = {t: scalar(f"SELECT COUNT(*) FROM {t}") for t in ("athletes", "athlete_participations", "silver_participations", "gold_athlete_career", "gold_country_medals", "event_results", "gold_event_results", "olympedia_standings", "olympedia_matches")}
+    names = _table_names()
+    layers = {"bronze_tables": sum(1 for n in names if n.startswith(("src_", "olympedia_", "wikipedia_"))),
+              "silver_tables": sum(1 for n in names if n.startswith("silver_")), "gold_tables": sum(1 for n in names if n.startswith("gold_") and n != "gold_build_state")}
+    counts = {t: _count(t) for t in ("athletes", "athlete_participations", "silver_participations", "gold_athlete_career", "gold_country_medals", "event_results", "gold_event_results", "olympedia_standings", "olympedia_matches")}
     return {"layers": layers, "row_counts": counts, "runs": rows("SELECT * FROM pipeline_runs ORDER BY run_id DESC LIMIT 20"),
             "gold_build_state": rows("SELECT COUNT(*) games, MAX(built_at) last_built FROM gold_build_state"),
             "duplicates": rows("SELECT dataset, duplicate_rows_excluding_ids dup FROM (SELECT 'see reports/data_inventory/dataset_inventory.csv' dataset, 0 duplicate_rows_excluding_ids) WHERE 0"),

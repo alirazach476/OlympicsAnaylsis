@@ -119,7 +119,8 @@ class Ctx:
 
 
 _QCACHE: "OrderedDict[tuple, pd.DataFrame]" = OrderedDict()
-_QCACHE_MAX, _QCACHE_MAX_ROWS = 96, 400_000
+# smaller on the serverless host, where the warehouse itself already lives in RAM
+_QCACHE_MAX, _QCACHE_MAX_ROWS = (int(os.environ.get("OLY_QCACHE_MAX", 96)), 400_000)
 
 
 def _db_signature() -> tuple:

@@ -16,8 +16,23 @@ ROOT = Path(__file__).resolve().parents[2]
 LAYER_COLORS = {"Bronze (raw / staging)": "#CD7F32", "Silver (cleaned)": "#9AA3AF", "Gold (analytics-ready)": "#D4AF37"}
 
 
+def _mtime(f: Path) -> float:
+    """File modification time; the serverless bundle (whose file times are reset) records the originals in reports/_mtimes.json."""
+    m = ROOT / "reports" / "_mtimes.json"
+    if m.exists():
+        rel = f.resolve().relative_to(ROOT).as_posix()
+        recorded = json.loads(m.read_text(encoding="utf-8")).get(rel)
+        if recorded:
+            return float(recorded)
+    return f.stat().st_mtime
+
+
 def count(table: str) -> int:
-    return int(scalar(f"SELECT COUNT(*) FROM {table}") or 0)
+    """Live row count. The slim deployment DB drops raw staging tables but keeps their exact counts in _table_counts."""
+    try:
+        return int(scalar(f"SELECT COUNT(*) FROM {table}") or 0)
+    except Exception:  # noqa: BLE001
+        return int(scalar("SELECT n FROM _table_counts WHERE name = :t", t=table) or 0)
 
 
 @chart("de_etl_flow", S, "engineering", "ETL pipeline flow", "flow", "Warehouse tables", "sqlite_master + row counts",
@@ -188,7 +203,7 @@ def quality_scorecard(ctx: Ctx):
     tiles = [{"label": "Checks passed", "value": f"{ok} / {len(rows)}", "hint": f"{100 * ok / len(rows):.0f}% of automated expectations", "status": "ok" if ok == len(rows) else "warn"}]
     fails = [r for r in rows if r["passed"] != "True"]
     tiles.append({"label": "Failing checks", "value": str(len(fails)), "hint": ", ".join(r["check"] for r in fails) or "none", "status": "ok" if not fails else "bad"})
-    ts = dt.datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+    ts = dt.datetime.fromtimestamp(_mtime(f)).strftime("%Y-%m-%d %H:%M")
     tiles.append({"label": "Report generated", "value": ts, "hint": "scripts/run_validation.py", "status": "ok"})
     tab = [{"check": r["check"], "result": "PASS" if r["passed"] == "True" else "FAIL", "observed": r["observed"], "detail": r["detail"]} for r in rows]
     return payload("de_quality_scorecard", "scorecard", {"tiles": tiles, "tables": [{"title": "All checks", "columns": ["check", "result", "observed", "detail"], "rows": tab}]}, ctx=ctx, table=table_from(tab),

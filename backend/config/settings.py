@@ -71,7 +71,10 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     settings = Settings()
-    settings.wiki_cache_dir.mkdir(parents=True, exist_ok=True)
-    settings.raw_wikipedia_dir.mkdir(parents=True, exist_ok=True)
-    (settings.raw_wikipedia_dir / "pages").mkdir(parents=True, exist_ok=True)
+    try:
+        settings.wiki_cache_dir.mkdir(parents=True, exist_ok=True)
+        settings.raw_wikipedia_dir.mkdir(parents=True, exist_ok=True)
+        (settings.raw_wikipedia_dir / "pages").mkdir(parents=True, exist_ok=True)
+    except OSError:  # read-only filesystem (serverless API): the crawler cache dirs are not needed to serve data
+        pass
     return settings

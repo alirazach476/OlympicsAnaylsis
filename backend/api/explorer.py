@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import csv
+import zlib
 from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
-from sqlalchemy import inspect, text
+from sqlalchemy import text
 
 from backend.database.session import engine
 
@@ -27,21 +28,36 @@ REPORTS = {
 }
 
 
+def _present_cols(table: str) -> list[str]:
+    # PRAGMA without a schema searches main and attached databases (the slim deployment keeps a shard in memory).
+    with engine.connect() as con:
+        return [r[1] for r in con.execute(text(f'PRAGMA table_info("{table}")')).all()]
+
+
 def _cols(table: str) -> list[str]:
     if table not in TABLES:
         raise HTTPException(404, f"unknown table {table}")
-    insp = inspect(engine)
-    if not insp.has_table(table):
+    cols = _present_cols(table)
+    if not cols:
         raise HTTPException(404, f"table {table} not present")
-    return [c["name"] for c in insp.get_columns(table)]
+    return cols
+
+
+def _cell(v):
+    if isinstance(v, (bytes, memoryview)):  # zlib-compressed JSON in the slim deployment DB
+        try:
+            return zlib.decompress(bytes(v)).decode("utf-8")
+        except zlib.error:
+            return None
+    return v
 
 
 @router.get("/explorer/tables")
 def tables() -> list[dict]:
-    insp, out = inspect(engine), []
+    out = []
     with engine.connect() as con:
         for t in sorted(TABLES):
-            if insp.has_table(t):
+            if _present_cols(t):
                 out.append({"table": t, "rows": con.execute(text(f'SELECT COUNT(*) FROM "{t}"')).scalar()})
     return out
 
@@ -76,7 +92,7 @@ def rows(table: str, games_id: Optional[str] = None, noc: Optional[str] = None, 
         total = con.execute(text(f'SELECT COUNT(*) FROM "{table}"{w}'), params).scalar()
         data = con.execute(text(f'SELECT * FROM "{table}"{w} LIMIT :lim OFFSET :off'),
                            {**params, "lim": page_size, "off": (max(page, 1) - 1) * page_size}).mappings().all()
-    return {"table": table, "columns": cols, "total": total, "page": page, "page_size": page_size, "rows": [dict(r) for r in data]}
+    return {"table": table, "columns": cols, "total": total, "page": page, "page_size": page_size, "rows": [{k: _cell(v) for k, v in r.items()} for r in data]}
 
 
 @router.get("/reports/{name}")

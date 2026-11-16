@@ -75,3 +75,7 @@ deploy/huggingface/space/
 data/raw/historical_datasets/*.csv
 data/raw/**/*.csv
 frontend/src/*.bak
+
+# slim serverless shards (uploaded to Hugging Face, not git)
+data/manifest.json
+data/*.db.gz

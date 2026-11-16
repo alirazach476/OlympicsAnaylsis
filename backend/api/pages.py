@@ -3,6 +3,7 @@ Everything is read from the warehouse (olympedia_pages, olympedia_page_tables, o
 from __future__ import annotations
 
 import json
+import zlib
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -14,6 +15,8 @@ router = APIRouter()
 
 def _loads(s):
     try:
+        if isinstance(s, (bytes, memoryview)):  # slim deployment DB stores large JSON zlib-compressed
+            s = zlib.decompress(bytes(s)).decode("utf-8")
         return json.loads(s) if s else None
     except Exception:  # noqa: BLE001
         return None

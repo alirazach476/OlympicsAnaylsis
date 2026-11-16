@@ -6,6 +6,7 @@ olympedia_matches, olympedia_country_results, silver_medal_awards and games. Not
 from __future__ import annotations
 
 import json
+import zlib
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -27,6 +28,8 @@ MEDAL_CONVENTION = ("One medal per podium place per NOC per event, from the Olym
 
 def _loads(s, default=None):
     try:
+        if isinstance(s, (bytes, memoryview)):  # slim deployment DB stores large JSON zlib-compressed
+            s = zlib.decompress(bytes(s)).decode("utf-8")
         return json.loads(s) if s else default
     except Exception:  # noqa: BLE001
         return default
@@ -576,7 +579,9 @@ def edition_gender(games_id: str):
 # ------------------------------------------------------------------ assets and coverage
 @router.get("/assets/editions/{games_id}", tags=["olympic"])
 def edition_assets(games_id: str):
-    reg = _loads((ROOT / "frontend/public/assets/editions.json").read_text(encoding="utf-8"), {}) or {}
+    # the serverless bundle ships a copy next to this module (deploy/vercel-api/prepare.py)
+    f = next((p for p in (ROOT / "frontend/public/assets/editions.json", Path(__file__).with_name("editions.json")) if p.exists()), None)
+    reg = (_loads(f.read_text(encoding="utf-8"), {}) or {}) if f else {}
     e = (reg.get("editions") or {}).get(games_id)
     if not e:
         raise HTTPException(404, "edition not in the asset registry")

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import sqlite3
 from pathlib import Path
 
@@ -10,7 +11,8 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
-DB = ROOT / "data" / "olympics_warehouse.db"
+# OLY_DB_PATH lets the serverless deployment point at the slim, read-only copy of the warehouse.
+DB = Path(os.environ.get("OLY_DB_PATH") or ROOT / "data" / "olympics_warehouse.db")
 
 
 def connect(readonly: bool = False) -> sqlite3.Connection:
