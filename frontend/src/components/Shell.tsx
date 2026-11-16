@@ -92,7 +92,7 @@ function EditionSwitcher() {
   if (!list.length) return null;
   const ed = b.edition;
   return (
-    <label className="group relative mb-4 block cursor-pointer overflow-hidden rounded-2xl border border-white/10 shadow-lg" data-testid="edition-switcher">
+    <label className="group relative mb-4 block shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-white/10 shadow-lg" data-testid="edition-switcher">
       {ed?.assets.background && <img src={ed.assets.background} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-70 transition duration-500 group-hover:scale-105" />}
       <span className="absolute inset-0" style={{ background: "linear-gradient(100deg, color-mix(in srgb, var(--ed-deep, var(--ed-primary, #1e3a5f)) 92%, #04060b) 30%, color-mix(in srgb, var(--ed-deep, var(--ed-primary, #1e3a5f)) 40%, transparent))" }} />
       <span className="relative flex items-center gap-3 p-2.5">
@@ -162,7 +162,7 @@ function ShellInner() {
         data-testid="menu-bar" style={home ? { backgroundImage: "linear-gradient(180deg, rgb(var(--surface) / 0.82), rgb(var(--surface) / 0.94)), url(/assets/backgrounds/overview.png)", backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
         <div className="ed-stripe -mx-3 mb-3 h-1.5 shrink-0" data-testid="nav-stripe" />
         {/* brand */}
-        <NavLink to="/" onClick={() => setOpen(false)} className="relative mb-4 hidden overflow-hidden rounded-2xl border border-white/10 bg-black/25 px-4 pb-4 pt-3 text-center shadow-lg backdrop-blur-sm lg:block" aria-label="Olympic Intelligence, home">
+        <NavLink to="/" onClick={() => setOpen(false)} className="relative mb-4 hidden shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black/25 px-4 pb-4 pt-3 text-center shadow-lg backdrop-blur-sm lg:block" aria-label="Olympic Intelligence, home">
           <span className="pointer-events-none absolute -top-10 left-1/2 h-24 w-40 -translate-x-1/2 rounded-full opacity-40 blur-2xl" style={{ background: "var(--ed-accent, #c9a227)" }} />
           <OlympicRings size={132} className="relative mx-auto mb-2" />
           <div className="relative font-display text-[26px] font-bold uppercase leading-none tracking-wide">
@@ -171,17 +171,17 @@ function ShellInner() {
           <div className="relative mt-1.5 whitespace-nowrap text-[9.5px] font-semibold uppercase tracking-[0.16em] text-muted">Summer &amp; Winter · 1960–2026</div>
         </NavLink>
         <EditionSwitcher />
-        <button className="mb-4 hidden w-full items-center justify-between rounded-xl border border-line bg-surface2/70 px-3 py-2 text-sm text-muted transition hover:border-[var(--ed-accent)] hover:text-ink lg:flex" onClick={() => setSearch(true)} aria-label="Search">
+        <button className="mb-4 hidden w-full shrink-0 items-center justify-between rounded-xl border border-line bg-surface2/70 px-3 py-2 text-sm text-muted transition hover:border-[var(--ed-accent)] hover:text-ink lg:flex" onClick={() => setSearch(true)} aria-label="Search">
           <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" /> Search everything</span><kbd className="rounded-md border border-line bg-surface px-1.5 py-0.5 text-[10px]">Ctrl K</kbd>
         </button>
-        <nav className="flex flex-col gap-0.5" aria-label="Main">
+        <nav className="flex shrink-0 flex-col gap-0.5" aria-label="Main">
           {NAV.map((item, i) => (
             <div key={item.to}>
               {(i === 0 || NAV[i - 1].group !== item.group) && <div className="mb-1.5 mt-3 flex items-center gap-2 px-2.5 text-[10px] font-bold uppercase tracking-[0.25em] text-muted first:mt-0"><span>{item.group}</span><span className="h-px flex-1 bg-line" /></div>}
               <MenuItem item={item} active={isActive(loc.pathname, item)} onClick={() => setOpen(false)} />
             </div>))}
         </nav>
-        <div className="mt-auto hidden pt-5 lg:block">
+        <div className="mt-auto hidden shrink-0 pt-5 lg:block">
           <div className="flex rounded-xl border border-line bg-surface2/70 p-1 text-xs font-semibold" role="group" aria-label="Colour theme">
             {(["dark", "light"] as const).map((m) => <button key={m} type="button" onClick={() => theme !== m && toggle()} aria-pressed={theme === m}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 transition ${theme === m ? "bg-[var(--ed-accent)] text-black shadow" : "text-muted hover:text-ink"}`}>{m === "dark" ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}{m === "dark" ? "Dark" : "Light"}</button>)}
