@@ -22,7 +22,23 @@ from backend.database.session import SessionLocal, get_db
 from backend.models.core import Athlete, Event, EventResult, Game, MedalTable
 from backend.models.enums import CrawlStatus
 from backend.models.wikipedia import CrawlHistory, CrawlQueue, WikipediaLink, WikipediaPage
-from backend.scrapers.wikipedia.crawler import CrawlControls, WikipediaOlympicsCrawler
+
+
+class _Lazy:
+    """Defer importing the Wikipedia crawler (requests, bs4, tenacity ...) until a crawler endpoint is actually called:
+    the site never calls them, and skipping the import shortens the serverless cold start."""
+
+    def __init__(self, name: str) -> None:
+        self._name = name
+
+    def __call__(self, *a, **k):
+        from backend.scrapers.wikipedia import crawler
+
+        return getattr(crawler, self._name)(*a, **k)
+
+
+CrawlControls = _Lazy("CrawlControls")
+WikipediaOlympicsCrawler = _Lazy("WikipediaOlympicsCrawler")
 
 router = APIRouter()
 _crawl_lock = threading.Lock()

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from contextlib import contextmanager
 from typing import Generator, Iterator
 
@@ -13,10 +14,11 @@ from backend.config import get_settings
 from backend import memdb as _memory
 
 _settings = get_settings()
-if _memory.CONN is not None:
+if os.environ.get("OLY_SERVERLESS") or _memory.CONN is not None:
     # Serverless deployment: every query runs on the pre-loaded, read-only in-memory warehouse
     # (deploy/vercel-api/api/index.py). One shared connection; SQLite serialises access internally.
-    engine = create_engine("sqlite://", creator=lambda: _memory.CONN, poolclass=StaticPool, future=True)
+    engine = create_engine("sqlite://", creator=lambda: _memory.CONN,  # resolved at connect time, so imports can finish before the data is loaded
+         poolclass=StaticPool, future=True)
 else:
     _connect_args = {}
     if _settings.database_url.startswith("sqlite"):

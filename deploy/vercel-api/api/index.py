@@ -1,8 +1,8 @@
 """Vercel serverless entry point for the Olympics API (free tier, no always-on server).
 
 Cold start:
-  1. download the gzipped slim-warehouse shards (built by scripts/build_slim_db.py) from the public
-     Hugging Face dataset in parallel;
+  1. download the compressed slim-warehouse shards (built by scripts/build_slim_db.py) from the public
+     Hugging Face dataset in parallel threads, unpacking each as it arrives, while the app code is imported;
   2. deserialize them into one in-memory sqlite3 connection: the first shard as ``main``, the others attached
      as ``m0``, ``m1``, ... (SQLite resolves unqualified table names across attached schemas);
   3. hand that connection to backend.memdb and import backend.api.main, whose engine then uses it.
@@ -50,33 +50,52 @@ def _fetch(name: str) -> bytes:
     raise RuntimeError("unreachable")
 
 
+def _load_shard(name: str) -> bytes:
+    """Download one shard and unpack it (zstd, or gzip for older manifests). Runs in a worker thread: both the
+    network wait and the decompression release the GIL, so this overlaps with importing the application."""
+    blob = _fetch(name)
+    if name.endswith(".zst"):
+        import zstandard
+
+        return zstandard.ZstdDecompressor().decompress(blob)
+    return gzip.decompress(blob)
+
+
+# Environment for the application modules (read when they are imported).
+os.environ["OLY_SERVERLESS"] = "1"   # engine connects to the in-memory warehouse, resolved lazily
+os.environ["OLY_LAZY_VIZ"] = "1"     # chart stack (pandas/numpy/scipy) is imported on the first /api/viz request
+os.environ.setdefault("CORS_ORIGINS", "*")
+os.environ.setdefault("OLY_QCACHE_MAX", "16")
+
+_T0 = time.time()
+_PHASE: dict = {}
+_MANIFEST = json.loads(_fetch("manifest.json"))
+_NAMES = [_MANIFEST["disk"], *_MANIFEST["mem"]]
+_POOL = ThreadPoolExecutor(max_workers=len(_NAMES))
+_FUTURES = {n: _POOL.submit(_load_shard, n) for n in _NAMES}   # start downloading right away ...
+
+_PHASE["manifest_s"] = round(time.time() - _T0, 2)
+from backend.api.main import app as api  # noqa: E402  ... while the application code is imported
+_PHASE["import_s"] = round(time.time() - _T0, 2)
+
+
 def boot() -> dict:
-    t0 = time.time()
-    manifest = json.loads(_fetch("manifest.json"))
-    names = [manifest["disk"], *manifest["mem"]]
-    with ThreadPoolExecutor(max_workers=len(names)) as ex:
-        blobs = dict(zip(names, ex.map(_fetch, names)))
     # Everything lives in RAM: Vercel's small /tmp is already used by the runtime's dependency cache.
     con = sqlite3.connect(":memory:", check_same_thread=False)
-    for i, name in enumerate(names):
+    for i, name in enumerate(_NAMES):
         schema = "main" if i == 0 else f"m{i - 1}"
         if schema != "main":
             con.execute(f"ATTACH DATABASE ':memory:' AS {schema}")
-        data = gzip.decompress(blobs.pop(name))
-        con.deserialize(data, name=schema)
-        del data
+        con.deserialize(_FUTURES.pop(name).result(), name=schema)
     con.execute("PRAGMA query_only = ON")
     from backend import memdb
 
     memdb.CONN = con
-    os.environ.setdefault("CORS_ORIGINS", "*")
-    os.environ.setdefault("OLY_QCACHE_MAX", "16")
-    return {"version": manifest.get("version"), "boot_seconds": round(time.time() - t0, 1)}
+    _POOL.shutdown(wait=False)
+    return {"version": _MANIFEST.get("version"), "boot_seconds": round(time.time() - _T0, 1), **_PHASE, "shards_ready_s": round(time.time() - _T0, 2)}
 
 
 BOOT = boot()
-
-from backend.api.main import app as api  # noqa: E402  (must import after the databases are in place)
 
 
 @api.get("/api/_boot", include_in_schema=False)

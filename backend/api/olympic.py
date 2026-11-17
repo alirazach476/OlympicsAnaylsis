@@ -435,7 +435,7 @@ def medals_by_country(season: Optional[str] = None, year_from: Optional[int] = N
 
 @router.get("/medals/editions/{games_id}", tags=["olympic"])
 def medals_edition(games_id: str, sport: Optional[str] = None, gender: Optional[str] = None, page_size: int = Query(300, le=500)):
-    d = medals_by_country(games_id=games_id, sport=sport, gender=gender, page_size=page_size)
+    d = medals_by_country(games_id=games_id, sport=sport, gender=gender, page_no=1, page_size=page_size)
     d["edition"] = _edition(games_id)
     d["all_sports"] = sorted({r["sport_name"] for r in rows("SELECT DISTINCT sport_name FROM silver_medal_awards WHERE games_id=:g", g=games_id)})
     return d

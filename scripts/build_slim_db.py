@@ -15,14 +15,17 @@ SQLite resolves unqualified table names across attached databases, so every quer
 
 No value is altered or invented: every kept row is identical after decompression.
 
-Usage:  python scripts/build_slim_db.py [--src data/olympics_warehouse.db] [--out data/olympics_slim] [--gzip]
+Usage:  python scripts/build_slim_db.py [--src data/olympics_warehouse.db] [--out data/olympics_slim] [--compress]
+
+``--compress`` also writes ``<shard>.zst`` (zstandard: ~4x faster to unpack than gzip, which matters for the serverless cold start)
+and ``data/manifest.json``; upload those to the Hugging Face dataset under ``slim/``.
 """
 from __future__ import annotations
 
 import argparse
-import gzip
+import datetime as dt
+import json
 import os
-import shutil
 import sqlite3
 import time
 import zlib
@@ -139,14 +142,25 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=str(ROOT / "data" / "olympics_warehouse.db"))
     ap.add_argument("--out", default=str(ROOT / "data" / "olympics_slim"))
-    ap.add_argument("--gzip", action="store_true", help="also write <shard>.gz files for upload")
+    ap.add_argument("--compress", action="store_true", help="also write <shard>.zst files and manifest.json for upload")
     a = ap.parse_args()
-    for p in build(Path(a.src), a.out):
-        if a.gzip:
-            gz = Path(str(p) + ".gz")
-            with open(p, "rb") as f, gzip.open(gz, "wb", compresslevel=6) as g:
-                shutil.copyfileobj(f, g, 1 << 20)
-            print(f"gzip {gz} : {os.path.getsize(gz) / 1e6:,.1f} MB")
+    shards = build(Path(a.src), a.out)
+    if a.compress:
+        import zstandard
+
+        cctx = zstandard.ZstdCompressor(level=12, threads=-1)
+        names = {}
+        for p in shards:
+            z = Path(str(p) + ".zst")
+            with open(p, "rb") as f, open(z, "wb") as g:
+                cctx.copy_stream(f, g, size=p.stat().st_size)  # frame records the content size
+            names[p.name] = z.name
+            print(f"zstd {z} : {z.stat().st_size / 1e6:,.1f} MB")
+        disk = next(p for p in shards if p.name.endswith("_disk.db"))
+        manifest = {"version": dt.datetime.now().strftime("%Y-%m-%d.%H%M"), "disk": names[disk.name],
+                    "mem": [names[p.name] for p in shards if p is not disk]}
+        (Path(a.out).parent / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+        print(manifest)
 
 
 if __name__ == "__main__":

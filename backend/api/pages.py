@@ -50,6 +50,7 @@ def bouts(games_id: str, sport: str, event: Optional[str] = None, page_no: int =
     out = page(f"SELECT COUNT(*) FROM olympedia_matches {w}", f"SELECT result_id, event_name, label, stage, match_date, location, home_team, home_noc, home_score, away_team, away_noc, away_score, participants_json FROM olympedia_matches {w} ORDER BY event_name, match_date, result_id", page_no, page_size, **p)
     for r in out["rows"]:
         r["participants"] = _loads(r.pop("participants_json")) or []
+        _fill_from_participants(r, r["participants"])
     out["events"] = [r["event_name"] for r in rows("SELECT DISTINCT event_name FROM olympedia_matches WHERE games_id=:g AND sport_name=:s ORDER BY event_name", g=games_id, s=sport)]
     return out
 
@@ -102,14 +103,34 @@ def _base(name: str) -> str:
     return _re.sub(r"\s*\(.*?\)", "", name or "").strip().lower()
 
 
+def _team_rows(h: list, r: list) -> list:
+    """The two competitor rows of a scoreboard table. Team events (fencing, table tennis, alpine team ...) put a line of squad
+    members under each team, so the first two rows are not always the two teams: keep the rows that carry a NOC cell."""
+    i = h.index("NOC") if "NOC" in h else 2
+    teams = [row for row in r if len(row) > i and str(row[i] or "").strip()]
+    return (teams or r)[:2]
+
+
+def _fill_from_participants(m: dict, participants: list) -> None:
+    """Individual matches store the NOC on each competitor, not on the match's home/away columns."""
+    if participants and len(participants) >= 2:
+        for side, p in (("home", participants[0]), ("away", participants[1])):
+            if not m.get(f"{side}_noc") and p.get("noc"):
+                m[f"{side}_noc"] = p["noc"]
+            if not m.get(f"{side}_team") and p.get("competitor"):
+                m[f"{side}_team"] = p["competitor"]
+
+
 @router.get("/matches/{result_id}", tags=["pages"])
 def match_detail(result_id: str):
     """One match for the broadcast scoreboard, read from the saved Olympedia match page: the scoreboard table (score and every period / set exactly as labelled), team statistics summed from the
     recorded player rows, goals / cards / substitutions from the event tables (the scoring side comes from matching the scorer to the line-ups), line-ups and officials. Nothing is invented:
     the match clock, shots or fouls appear only when the page records them."""
-    m = one("SELECT result_id, games_id, sport_name, event_name, stage, match_date, location, home_team, home_noc, home_score, away_team, away_noc, away_score FROM olympedia_matches WHERE result_id=:r", r=result_id)
+    m = one("SELECT result_id, games_id, sport_name, event_name, stage, match_date, location, home_team, home_noc, home_score, away_team, away_noc, away_score, participants_json FROM olympedia_matches WHERE result_id=:r", r=result_id)
     if not m:
         raise HTTPException(404, "unknown match")
+    parts = _loads(m.pop("participants_json")) or []
+    _fill_from_participants(m, parts)
     details = {d["key"]: d["value"] for d in rows("SELECT key, value FROM olympedia_match_details WHERE result_id=:r", r=result_id)}
     tabs = rows("SELECT table_index, kind, headers_json, rows_json FROM olympedia_match_tables WHERE result_id=:r ORDER BY table_index", r=result_id)
     sb_rows, periods, score_label = [], [], None
@@ -121,9 +142,10 @@ def match_detail(result_id: str):
             labels = [x for x in h[i0:] if x]
             score_label = labels[0] if labels else None
             for k, lab in enumerate(labels[1:], start=1):
-                periods.append({"label": lab, "scores": [(_int(row[i0 + k]) if i0 + k < len(row) else None) for row in r[:2]]})
-            sb_rows = r[:2]
-            teams = [{"name": row[1], "noc": row[2], "score": _int(row[i0])} for row in r[:2]]
+                periods.append({"label": lab, "scores": [(_int(row[i0 + k]) if i0 + k < len(row) else None) for row in _team_rows(h, r)]})
+            sb_rows = _team_rows(h, r)
+            ci, ni = (h.index("Competitor") if "Competitor" in h else 1), i0 - 1
+            teams = [{"name": row[ci] if ci < len(row) else None, "noc": row[ni] if ni < len(row) else None, "score": _int(row[i0]) if i0 < len(row) else None} for row in sb_rows]
         elif t["kind"] == "players":
             lineups.append({"headers": h, "rows": r})
         elif t["kind"] == "events":
@@ -181,6 +203,8 @@ def match_detail(result_id: str):
             for x in er:
                 goals.append({"time": x[0], "player": x[1], "score": None, "side": side_of.get(_base(x[1])), "note": None})
     officials = {k: v for k, v in details.items() if k not in ("Date", "Location")}
+    if not teams and len(parts) >= 2:  # no scoreboard table saved: still name the sides and show their flags
+        teams = [{"name": x.get("competitor"), "noc": x.get("noc"), "score": _int(x.get("result_value"))} for x in parts[:2]]
     return {**m, "score_label": score_label, "teams": teams, "periods": periods, "stats": stats, "goals": goals, "cards": cards, "substitutions": subs,
             "lineups": [{"team": (teams[i]["name"] if i < len(teams) else f"Team {i + 1}"), "noc": (teams[i]["noc"] if i < len(teams) else None), "headers": lu["headers"], "rows": lu["rows"]} for i, lu in enumerate(lineups[:2])],
             "officials": officials, "source_url": f"https://www.olympedia.org/results/{result_id}",
@@ -220,7 +244,7 @@ def match_board(games_id: str, sport: str, stage: Optional[str] = None, page_no:
                 continue
             i0 = h.index("NOC") + 1 if "NOC" in h else 3
             labels = [x for x in h[i0:] if x]
-            by[t["result_id"]] = {"score_label": labels[0] if labels else None, "periods": [{"label": lab, "scores": [(_int(row[i0 + k]) if i0 + k < len(row) else None) for row in r[:2]]} for k, lab in enumerate(labels[1:], start=1)]}
+            by[t["result_id"]] = {"score_label": labels[0] if labels else None, "periods": [{"label": lab, "scores": [(_int(row[i0 + k]) if i0 + k < len(row) else None) for row in _team_rows(h, r)]} for k, lab in enumerate(labels[1:], start=1)]}
     for r in out["rows"]:
         r.update(by.get(r["result_id"], {"score_label": None, "periods": []}))
     out["events"] = [r["event_name"] for r in rows("SELECT DISTINCT event_name FROM olympedia_matches WHERE games_id=:g AND sport_name=:s ORDER BY event_name", g=games_id, s=sport)]

@@ -6,7 +6,7 @@ import math
 
 import numpy as np
 import pandas as pd
-from scipy import stats as sps
+from .lazy import sps
 
 from .core import MEDAL_COLORS, Ctx, Unavailable, age_rows, analytics, box_stats, chart, df, kde, need_rows, payload, series_defs, table_from
 from .core import engine, text

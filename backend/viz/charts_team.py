@@ -7,7 +7,7 @@ import re
 
 import numpy as np
 import pandas as pd
-from scipy import stats as sps
+from .lazy import sps
 
 from .core import Ctx, Unavailable, chart, df, need_rows, payload, series_defs, table_from
 

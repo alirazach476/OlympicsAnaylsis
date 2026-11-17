@@ -285,3 +285,24 @@ def test_sports_by_edition_matches_the_event_index():
     assert cur["Curling"] == 3
     ev = client.get("/api/games/2022_winter/sports/Curling").json()
     assert ev["total"] == 3
+
+
+def test_team_scoreboard_picks_the_two_team_rows_and_their_flags():
+    # fencing team match: a squad-members line sits under each team, and the table has no "Number" column
+    d = client.get("/api/matches/88313").json()
+    assert [(t["name"], t["noc"]) for t in d["teams"]] == [("Soviet Union", "URS"), ("Italy", "ITA")]
+    # table tennis team match with set scores
+    d = client.get("/api/matches/46768").json()
+    assert [t["noc"] for t in d["teams"]] == ["CHN", "YUG"] and d["periods"][0]["scores"] == [20, 22]
+
+
+def test_individual_match_flags_come_from_the_competitors():
+    d = client.get("/api/matches/130367").json()          # wrestling: NOC is stored per competitor, not on home/away
+    assert (d["home_noc"], d["away_noc"]) == ("CHN", "USA")
+    rows = client.get("/api/bouts", params={"games_id": "1988_summer", "sport": "Wrestling", "page_size": 5}).json()["rows"]
+    assert all(r["home_noc"] for r in rows if len(r["participants"]) >= 2)
+
+
+def test_medal_table_of_one_edition_loads():
+    d = client.get("/api/medals/editions/2020_summer").json()
+    assert d["rows"][0]["noc"] == "USA" and d["edition"]["games_id"] == "2020_summer"
